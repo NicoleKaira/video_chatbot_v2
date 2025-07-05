@@ -1,0 +1,9 @@
+.venv
+.idea
+.env
+
+evaluation_results.csv
+generated_prompt.txt
+
+*/__pycache__/*
+__pycache__/*
