@@ -195,7 +195,7 @@ class ChatService:
         except Exception as e:
             print(f"[is_temporal_question] Error: {e}")
             return False
-
+    #nicole added
     def retrieve_chunks_by_timestamp(self, video_id: str, timestamp: str):
         """
         Retrieve chunks from prompt_content_clean collection based on timestamp.

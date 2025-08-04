@@ -1,7 +1,9 @@
 import asyncio
 import json
 import os
+import time
 from typing import List
+
 
 from dotenv import load_dotenv
 from langchain_openai import AzureChatOpenAI
@@ -86,22 +88,59 @@ class EvaluatorService:
         #     "The lecturer answered queries from students. These queries are mainly course-related information.",
         #     "It will start at around 12:30pm."
         # ]
-
+################################################################################################
         self.time_sensitive_questions = [
-            "When did the lecturer mention the learning outcomes of this course?",
-            "What was discussed at the end of the lecture?",
-            "When was the difference between algorithm and program discussed?",
+            "What is mentioned at 33 minutes of the lecture?",
             "What was discussed in 27:00 of the lecture?",
-            "What was discussed before Learning outcomes?"
+            "When was the difference between algorithm and program discussed?",
+            "What concept is explained around 45:00 into the lecture?",
+            "At what point in the lecture does it start discussing How do we solve the different searching, graph and combinatorial problems?",
+            "What does the lecturer say right after the algorithm Vs program at 23 minutes in the video?",
+            "Does the lecturer explain graph problems before or after Combinatorial problems?",
+            "What was discussed before Learning outcomes?",
+            "What topic is discussed right after Algorithm Design Strategies?",
+            "Which topic comes just before the explanation of the Sorting Problem?"
         ]
 
         self.time_sensitive_answers = [
-            "The lecturer mentioned the learning outcomes of the course between 07:00 and 09:45.", 
-            "A question and answer session with the students, where the lecturer discussed how labs and tutorials could support their learning in the module.", 
-            "The difference between an algorithm and a program was discussed around 21:00.", 
+            "At the 33-minute mark, the lecturer mentioned that the module will mainly cover problem types such as searching, graph problems, and combinatorial problems involving permutations.",
             "The lecturer discussed the Fibonacci sequence, using it as an example to illustrate algorithmic thinking and recursive problem-solving.",
-            "Before discussing the learning outcomes, the lecturer went through the course schedule."
+            "The difference between an algorithm and a program was discussed around 21:00.",
+            "Around the 45-minute mark, the lecturer explains stable sorting algorithms, highlighting that they preserve the relative order of repeated elements during sorting, using student marks across modules as an example.",
+            "It begins discussing how to solve different searching, graph, and combinatorial problems around the 53-minute mark, introducing data structures and algorithmic strategies like brute force, divide and conquer, greedy, and more.",
+            "Right after explaining the difference between an algorithm and a program around the 23-minute mark, the lecturer introduces a simple example of summing numbers from 1 to N using different algorithmic approaches, such as a for loop, a mathematical formula, and recursion.",
+            "The lecturer explains graph problems before combinatorial problems.",
+            "Before discussing the learning outcomes, the lecturer went through the course schedule.",
+            "Right after algorithm design strategies, the lecturer summarizes the overview of the lecture and discusses what will be taught in the next few weeks in this module.",
+            "The combinatorial problem is discussed just before the explanation of the sorting problem."
         ]
+     ##### PART2 #####
+    #     self.time_sensitive_questions = [
+    #     "Which week or lecture covers the topic Hash Tables?",
+    #     "During which part of the lecture (start/middle/end) is Computer Science Programme Structure discussed?",
+    #     "What is covered in the last 5 minutes of the lecture?",
+    #     "What was discussed at the start of the lecture?",
+    #     "What was discussed at the end of the lecture?",
+    #     "What was said 2 minutes before Problem Type was introduced?",
+    #     "When did the lecturer mention the learning outcomes of this course?",
+    #     "What topic is discussed between 23:00 and 26:00?",
+    #     "When did the lecturer mention the overview of the lecture?",
+    #     "What topics were discussed between the 2 to 8 minutes of the lecture?"
+    # ]
+
+    #     self.time_sensitive_answers = [
+    #     "The topic of Hash Tables is covered in Week 8 of the lecture.",
+    #     "The Computer Science Programme Structure is discussed at the beginning of the lecture.",
+    #     "In the last 5 minutes of the lecture, the lecturer emphasizes the importance of practicing coding independently rather than relying on provided solutions, highlighting that true understanding comes from implementing algorithms yourself. He also concludes the lecture and ends the live stream.",
+    #     "At the start of the lecture, Dr. Loke gave an introduction to the module, explained the format of the live stream and lecture notes, and outlined the topics to be covered, including the analysis of algorithms, hash tables, and graph problems in the second half of the module.",
+    #     "A Question-and-answer session with the students, where the lecturer discussed how labs and tutorials could support their learning in the module.",
+    #     "Two minutes before the Problem Type was introduced, the Fibonacci Sequence was discussed.",
+    #     "The lecturer mentioned the learning outcomes of the course between 07:00 and 09:45",
+    #     "Between 23:00 and 26:00, an example on the arithmetic series is discussed.",
+    #     "The lecturer mentioned the overview of the lecture 57:00 onwards.",
+    #     "The lecturer discussed the course schedule and the learning outcomes of the course."
+    # ]
+
 
 
 
@@ -243,6 +282,7 @@ class EvaluatorService:
 
         # Iterate through the questions and evaluate the answers
         for i in range(len(self.time_sensitive_questions)):
+            start_time = time.time()
             retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, self.time_sensitive_questions[i])
             print(str(i) + " get_dataset " + str(context))
             answer = self.chat_service.generate_video_prompt_response(retrieval_results, self.time_sensitive_questions[i])
@@ -254,6 +294,9 @@ class EvaluatorService:
             context_recall = await self.evaluate_context_recall(self.time_sensitive_questions[i], answer, self.time_sensitive_answers[i],
                                                                 context)
 
+            end_time = time.time()
+            time_taken = end_time - start_time
+
             # Store the results for this question in a dictionary
             result = {
                 'question': self.time_sensitive_questions[i],
@@ -263,10 +306,12 @@ class EvaluatorService:
                 'context_precision': context_precision,
                 'response_relevancy': response_relevancy,
                 'faithfulness_result': faithfulness_result,
-                'context_recall': context_recall
+                'context_recall': context_recall,
+                'time_taken': time_taken
             }
 
             results.append(result)
+            print("Iteration " + str(i) + " took " + str(time_taken) + " seconds")
 
         with open("evaluation_results_t.json", mode='w', newline='') as jsonfile:
             json.dump(results, jsonfile, indent=4)
@@ -276,6 +321,9 @@ class EvaluatorService:
         results = []  # This will store the results for all questions
         
         for i in range(len(self.time_sensitive_questions)):
+           
+            start_time = time.time()
+            
             question = self.time_sensitive_questions[i]
             # Step 1: Check if the question is temporal
             is_temporal_res = await self.chat_service.is_temporal_question(question)
@@ -307,6 +355,9 @@ class EvaluatorService:
             context_recall = await self.evaluate_context_recall(self.time_sensitive_questions[i], answer, self.time_sensitive_answers[i],
                                                                 context)
 
+            end_time = time.time()
+            time_taken = end_time - start_time
+
             # # Store the results for this question in a dictionary
             result = {
                 'question': self.time_sensitive_questions[i],
@@ -317,15 +368,17 @@ class EvaluatorService:
                 'response_relevancy': response_relevancy,
                 'faithfulness_result': faithfulness_result,
                 'context_recall': context_recall,
-                'temporal_information': is_temporal_res
+                'temporal_information': is_temporal_res.dict(),  # Convert to dict for JSON serialization
+                'time_taken': time_taken
             }
 
             results.append(result)
+            print("Iteration " + str(i) + " took " + str(time_taken) + " seconds")
 
         with open("evaluation_results_t_with_llm.json", mode='w', newline='') as jsonfile:
             json.dump(results, jsonfile, indent=4)
 
-    #Nicoles ^
+    #Nicole^
 
     async def get_dataset_pre_t(self, video_id):
         results = []  # This will store the results for all questions
@@ -486,18 +539,19 @@ async def main():
     video_id = "zwb6lqhpzl"
     print ("hei3", video_id)
 
-    evaluator_service = EvaluatorService(chat_service=service)
+    # evaluator_service = EvaluatorService(chat_service=service)
     #await evaluator_service.get_dataset(video_id=video_id)
     # await evaluator_service.get_dataset_pre(video_id=video_id)
     # await evaluator_service.get_dataset_naive(video_id=video_id)
     # await evaluator_service.get_dataset_clean_naive(video_id=video_id)
 
     evaluator_service = EvaluatorService(chat_service=service)
-    # await evaluator_service.get_dataset_t(video_id=video_id)
+    # await evaluator_service.get_dataset_t(video_id=video_id) #this is the non temporal pipeline that i used!
     # await evaluator_service.get_dataset_pre_t(video_id=video_id)
     # await evaluator_service.get_dataset_naive_t(video_id=video_id)
     # await evaluator_service.get_dataset_clean_naive_t(video_id=video_id)
 
+    #nicole temporal
     await evaluator_service.get_dataset_t_with_llm(video_id=video_id)
 
 

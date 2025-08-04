@@ -36,7 +36,7 @@ def calculate_average_metrics(json_path):
     return averages
 
 # Example usage
-json_file = "evaluation_results_pre_t.json"  # Replace with your JSON file path
+json_file = r"C:\Users\nicol\OneDrive\Desktop\Video_chatbot_v2\backend\evaluation_results\evaluation_results_t_with_llm.json"  # Replace with your JSON file path
 averages = calculate_average_metrics(json_file)
 
 # Print results
