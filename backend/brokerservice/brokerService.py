@@ -1,6 +1,6 @@
 from bson import ObjectId
 
-from brokerservice.repository import BrokerRepository
+from brokerservice.repository import BrokerRepository#, retrieve_all_video_id
 from brokerservice.status import Status
 from loggingConfig import logger
 from transcriptservice.TranscriptService import TranscriptService
@@ -48,13 +48,15 @@ class BrokerService:
             videos = video_list.video 
             for video in videos:
                 video_object_id = ObjectId(video.video_id)
-                print(video_object_id) #video document video_d from mongodb 
+                print(video_object_id) #video document video_id from mongodb 
                 try:
                     print("starting...")
                     #nicole change this part
                     #video_id, insights = self.video_indexer_service.index_video(video)
+
+                    #nicole addition:
                     #video_id, insights = self.video_indexer_service.index_video_from_file("output.json")
-                    video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="zwb6lqhpzl")
+                    video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="sm1zzt8081")
 
                     #get thumbnail from video indexer
                     thumbnail_id = insights["summarizedInsights"]["thumbnailId"]
@@ -116,3 +118,4 @@ class BrokerService:
     def add_course(self, course_code, course_name, course_description):
         self.broker_db.add_course(course_code, course_name, course_description)
         return
+    

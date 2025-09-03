@@ -12,3 +12,8 @@ class ChatRequestBody(BaseModel):
 class LLMIsTemporalResponse(BaseModel):
     is_temporal: bool
     timestamp: str
+
+class QuestionTypeReponse(BaseModel):
+   classification: str
+   Video_ids: list[str]
+   subQuestion: list[str]

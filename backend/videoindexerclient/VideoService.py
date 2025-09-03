@@ -58,7 +58,7 @@ class VideoService:
 
         # self.client.wait_for_index_async(video_id) #keep checking every 10seconds until the index is processed 
         insights = self.client.get_video_async(video_id)
-        with open("nicole.json", "w", encoding="utf-8") as f:
+        with open(f"nicole_{video_id}.json", "w", encoding="utf-8") as f:
             json.dump(insights, f, indent=4, ensure_ascii=False)
 
         if insights and video_id:

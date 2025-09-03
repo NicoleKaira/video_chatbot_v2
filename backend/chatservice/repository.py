@@ -161,6 +161,41 @@ class ChatDatabaseService:
                 }]
             docs = self.prompt_content_clean_index_collection.aggregate(pipeline)
             return list(docs)
+        
+
+    # nicole mutlivideo RAG4.0
+    def retrieve_results_prompt_semantic_v2_multivid(self, video_ids: list, user_prompt: str):
+        print(video_ids)
+        # Find all video documents that match any of the video IDs in the list
+        video_reference_ids = self.video_collection.find({"video_id": {"$in": video_ids}})
+        video_reference_list = list(video_reference_ids)
+        
+        if not video_reference_list:
+            raise Exception("Invalid Video IDs when retrieving prompt.")
+        else:
+            # Create OR filter for all video IDs
+            video_id_filter = {"$or": [{"metadata.video_id": video_ref.get('video_id')} for video_ref in video_reference_list]}
+            
+            pipeline = [{
+                "$vectorSearch": {
+                    "index": self.vector_store_prompt_clean_index.get_index_name(),
+                    "filter": video_id_filter,
+                    "limit": 20,
+                    "numCandidates": 10,
+                    "path": "vectorContent",
+                    "queryVector": self.embedding_function.embed_query(user_prompt)
+                }},
+                {
+                    "$project":
+                        {
+                            "_id": 1,
+                            "textContent": 1,
+                            "metadata": 1,
+                            "score": {"$meta": "vectorSearchScore"}
+                        }
+                }]
+            docs = self.prompt_content_clean_index_collection.aggregate(pipeline)
+            return list(docs)
 
     def retrieve_results_prompt_text_v2(self, video_id, user_query):
         video_reference_id = self.video_collection.find_one({"video_id": video_id})
@@ -171,6 +206,33 @@ class ChatDatabaseService:
                 {
                     "$and": [
                         {"metadata.video_id": video_id},
+                        {"$text": {"$search": user_query}}
+                    ]
+                },
+                {
+                    "textContent": 1,
+                    "metadata": 1,
+                    "score": {"$meta": "textScore"}
+                }
+            ).sort("score", -1)
+            return list(docs)
+        
+    #nicole mulitdocs RAG 4.0
+    def retrieve_results_prompt_text_v2_multivid(self, video_ids, user_query):
+        # Find all video documents that match any of the video IDs in the list
+        video_reference_ids = self.video_collection.find({"video_id": {"$in": video_ids}})
+        video_reference_list = list(video_reference_ids)
+        
+        if not video_reference_list:
+            return ""
+        else:
+            # Create OR filter for all video IDs
+            video_id_filter = {"$or": [{"metadata.video_id": video_ref.get('video_id')} for video_ref in video_reference_list]}
+            
+            docs = self.prompt_content_clean_index_collection.find(
+                {
+                    "$and": [
+                        video_id_filter,
                         {"$text": {"$search": user_query}}
                     ]
                 },

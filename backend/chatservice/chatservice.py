@@ -14,7 +14,7 @@ from chatservice.repository import ChatDatabaseService
 from chatservice.model import ChatHistory, LLMIsTemporalResponse
 from chatservice.utils import weighted_reciprocal_rank
 from loggingConfig import logger
-from utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds
+from utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds, get_prompt_preQrag
 
 load_dotenv()
 
@@ -173,6 +173,24 @@ class ChatService:
         print(retrieval_results)
         return retrieval_results, [doc['text'] for doc in fused_documents]
     
+    #nicole added for multivideo
+    def retrieve_results_prompt_clean_multivid(self, video_ids, message, top_n: int=5):
+        docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(video_ids, message)
+        docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(video_ids, message)
+        logger.info(list(docs_semantic))
+        logger.info(list(docs_text))
+        doc_lists = [docs_semantic, docs_text]
+        # Enforce that retrieved docs are the same form for each list in retriever_docs
+        for i in range(len(doc_lists)):
+            doc_lists[i] = [
+                {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
+                for doc in doc_lists[i]]
+        fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
+        retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
+        print(retrieval_results)
+        return retrieval_results, [doc['text'] for doc in fused_documents]
+
+    
 
     #nicole added
     async def is_temporal_question(self, question: str) -> LLMIsTemporalResponse:
@@ -260,3 +278,53 @@ class ChatService:
         except Exception as e:
             print(f"[retrieve_chunks_by_timestamp] Error: {e}")
             return []
+        
+
+        
+    # nicole: pre-QRAG router that takes user_query and video_map and returns structured JSON
+    async def route_pre_qrag(self, user_query: str, video_map: list) -> dict:
+        """
+        Call LLM with the PRE-QRAG routing prompt, injecting the user query and the video map.
+
+        Args:
+            user_query (str): The user's natural language question.
+            video_map (list): Array of objects like {"name": str, "video_id": str}.
+
+        Returns:
+            dict: Parsed JSON with routing_type, video_ids, temporal signals, and query_variants.
+        """
+        try:
+            prompt = PromptTemplate(
+                template=get_prompt_preQrag(),
+                input_variables=["user_query", "video_map"]
+            )
+
+            # Ensure video_map is injected as JSON text to the prompt
+            video_map_json = json.dumps(video_map, ensure_ascii=False)
+
+            chain = prompt | self.chat_model
+            result = await chain.ainvoke({
+                "user_query": user_query,
+                "video_map": video_map_json
+            })
+
+            content = result.content if hasattr(result, "content") else str(result)
+            return json.loads(content)
+        except Exception as e:
+            print(f"[route_pre_qrag] Error: {e}")
+            # Return a minimal fallback structure to avoid breaking callers
+            return {
+                "routing_type": "GENERAL_KB",
+                "user_query": user_query,
+                "video_ids": [],
+                "is_temporal": False,
+                "temporal_signals": {
+                    "explicit_timestamps": [],
+                    "time_expressions": [],
+                    "ordinal_events": [],
+                    "relative_dates": []
+                },
+                "query_variants": [
+                    {"video_id": None, "question": user_query}
+                ]
+            }

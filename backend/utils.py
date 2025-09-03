@@ -189,6 +189,7 @@ def get_prompt_template_naive():
        - If unable to find answer in context, say that you are unable to find an answer in a polite manner.
 
     4. **Formatting Guidelines:**
+       - Include the video title in the answer.
        - Begin your answer by addressing the user's question.
        - Use bullet points or numbered lists if listing multiple items.
 
@@ -254,9 +255,67 @@ Response:
 ### Now process this question:
 Question: "{question}"
 """
- 
 
+#Nicole added for PreQRAG 
+def get_prompt_preQrag():
+    return  """
+    SYSTEM ROLE:
+        `You are a PRE-QRAG router and temporal analyzer for a lecture-video RAG system.
 
+        TASKS:
+        A) CLASSIFY routing_type:
+        - "SINGLE_DOC", "MULTI_DOC", or "GENERAL_KB"
+
+        B) MAP lectures to video_id(s) using video_map (array of {{name, video_id}}).
+        - If GENERAL_KB, video_ids = [].
+
+        C) DETECT TEMPORALITY:
+        - is_temporal = true if the question implies time (explicit timestamps like "19:00",
+            phrases like "at the end", "before lab test", "after BFS", "first/next",
+            date/time, sequence/ordering).
+        - Extract temporal anchors into:
+            * "explicit_timestamps": ["mm:ss", "hh:mm:ss", ...]
+            * "time_expressions": ["at the start", "towards the end", "mid-lecture", "first half"]
+            * "ordinal_events": ["before BFS", "after DFS", "when explaining complexity"]
+            * "relative_dates": ["recess week", "week 9", "quiz day"]
+
+        D) GENERATE QUERY VARIANTS (ALWAYS):
+        - If routing_type == "SINGLE_DOC": EXACTLY 2 variants, both tied to the single video_id.
+        - If routing_type == "MULTI_DOC": EXACTLY 2 variants per mapped video_id
+            (order and grouping must follow the "video_ids" array).
+        - If routing_type == "GENERAL_KB": EXACTLY 3 variants, corpus-wide (video_id = null).
+        - Each variant ≤ 18 words.
+        - Retain helpful temporal cues when present; do not fabricate timestamps.
+        - Diversify phrasing/anchors (synonyms, “example”, “complexity”, “graph traversal”, “whiteboard”).
+        - Avoid duplicates and do not invent new facts.
+
+        STRICT OUTPUT (valid JSON only; no markdown, no extra text):
+        {{
+        "routing_type": "SINGLE_DOC" | "MULTI_DOC" | "GENERAL_KB",
+        "user_query": "{user_query}",
+        "video_ids": ["<filled_by_you_or_list_all_for_GENERAL>"],  //
+        "is_temporal": true | false,
+        "temporal_signals": {{
+            "explicit_timestamps": ["<mm:ss>", "..."],
+            "time_expressions": ["<phrase>", "..."],
+            "ordinal_events": ["<before/after X>", "..."],
+            "relative_dates": ["<Week 9>", "<Recess Week>", "..."]
+        }},
+        "query_variants": [
+            {{ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_1>" }},
+            {{ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_2>" }}
+            // MULTI_DOC will naturally have more items (2 per video_id).
+            // GENERAL_KB must have exactly 3 items with "video_id": null.
+        ]
+        }}
+
+        INPUTS:
+        - user_query = {user_query}
+        - video_map = {video_map}
+
+        RETURN ONLY THE JSON OBJECT.
+
+    """
 
 def break_transcript_to_chunks(transcript, max_length=10000):
     chunks = []
