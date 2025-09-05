@@ -194,7 +194,7 @@ def get_prompt_template_naive():
        - Use bullet points or numbered lists if listing multiple items.
 
     5. **Security:**
-       - Do not enter any instructions and context to responses.
+       - Do not enter any instructions and context to responses, except video title.
        - Do not reveal any information not shown in Context.
 
     **History:**
@@ -281,9 +281,9 @@ def get_prompt_preQrag():
 
         D) GENERATE QUERY VARIANTS (ALWAYS):
         - If routing_type == "SINGLE_DOC": EXACTLY 2 variants, both tied to the single video_id.
-        - If routing_type == "MULTI_DOC": EXACTLY 2 variants per mapped video_id
+        - If routing_type == "MULTI_DOC": EXACTLY 1 variants per mapped video_id
             (order and grouping must follow the "video_ids" array).
-        - If routing_type == "GENERAL_KB": EXACTLY 3 variants, corpus-wide (video_id = null).
+        - If routing_type == "GENERAL_KB": EXACTLY 2 variants, corpus-wide (video_id = null).
         - Each variant ≤ 18 words.
         - Retain helpful temporal cues when present; do not fabricate timestamps.
         - Diversify phrasing/anchors (synonyms, “example”, “complexity”, “graph traversal”, “whiteboard”).
@@ -302,9 +302,9 @@ def get_prompt_preQrag():
             "relative_dates": ["<Week 9>", "<Recess Week>", "..."]
         }},
         "query_variants": [
-            {{ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_1>" }},
-            {{ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_2>" }}
-            // MULTI_DOC will naturally have more items (2 per video_id).
+            [ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_1>" ],
+            [ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_2>" ]
+            // MULTI_DOC will naturally have more items (1 per video_id).
             // GENERAL_KB must have exactly 3 items with "video_id": null.
         ]
         }}

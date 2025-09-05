@@ -166,6 +166,7 @@ class ChatDatabaseService:
     # nicole mutlivideo RAG4.0
     def retrieve_results_prompt_semantic_v2_multivid(self, video_ids: list, user_prompt: str):
         print(video_ids)
+
         # Find all video documents that match any of the video IDs in the list
         video_reference_ids = self.video_collection.find({"video_id": {"$in": video_ids}})
         video_reference_list = list(video_reference_ids)
@@ -180,9 +181,9 @@ class ChatDatabaseService:
                 "$vectorSearch": {
                     "index": self.vector_store_prompt_clean_index.get_index_name(),
                     "filter": video_id_filter,
-                    "limit": 20,
-                    "numCandidates": 10,
-                    "path": "vectorContent",
+                    "limit": 20, # <- total 20 chuncks retrieved.
+                    "numCandidates": 10, # <- Examines 10 candidate documents per video (for efficiency)
+                    "path": "vectorContent", 
                     "queryVector": self.embedding_function.embed_query(user_prompt)
                 }},
                 {

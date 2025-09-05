@@ -280,7 +280,6 @@ class ChatService:
             return []
         
 
-        
     # nicole: pre-QRAG router that takes user_query and video_map and returns structured JSON
     async def route_pre_qrag(self, user_query: str, video_map: list) -> dict:
         """
@@ -328,3 +327,51 @@ class ChatService:
                     {"video_id": None, "question": user_query}
                 ]
             }
+        
+    def handle_single_docs(self, queryVariants, temporal_flag, temporal_signals, top_n: int=3):
+        '''
+        How do i want the single to work:
+        If temporal_flag == yes
+        Loop into the queryVariants[], total of 2 queryvariance
+        1. Get first queryVariants[i] and temporal_signals[i]
+        2. Retrieve 3  chunks (+-2mins from the given temporal_signals)
+        Else
+        2. Retrieve sparse top 20 chunks 
+        4. Retrieve Dense top 20 chunks
+        5. RRF and get best top 3 chunks
+        Out of the loop, total of 6 chunks (3 from each queryvariant)
+        Return this 6 chunks
+        '''
+        all_retrieval_results = []
+        all_fused_documents = []
+        video_ids = []
+
+        
+        for i in range(len(queryVariants)):
+            variant = queryVariants[i]
+            vid_value = variant.get('video_id') if isinstance(variant, dict) else None
+            sub_query = variant.get('question') if isinstance(variant, dict) else ""
+            # Ensure video_ids is an array for $in filter downstream
+            vid_list = [vid_value] if isinstance(vid_value, str) else (vid_value or [])
+            docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
+            docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
+            # logger.info(list(docs_semantic))
+            # logger.info(list(docs_text))
+            doc_lists = [docs_semantic, docs_text]
+            # Enforce that retrieved docs are the same form for each list in retriever_docs
+            for j in range(len(doc_lists)):
+                doc_lists[j] = [
+                    {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
+                    for doc in doc_lists[j]]
+            fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
+            retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
+            print(f"Query variant {i}: {len(retrieval_results)} chunks")
+
+            # Append results from this query variant
+            all_retrieval_results.extend(retrieval_results)
+            all_fused_documents.extend(fused_documents)
+        
+        return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
+
+    
+    

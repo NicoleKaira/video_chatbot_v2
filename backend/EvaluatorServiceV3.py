@@ -236,6 +236,18 @@ class EvaluatorService:
     #     "The lecturer discussed the course schedule and the learning outcomes of the course."
     # ]
 ################################################################################################
+#question for multidocs
+
+        self.multidocs_questions = [
+            "Across the lectures, which graph-related topics are planned and what real-world path problem is used as an example?"
+            
+        ]
+        self.multidocs_answers = [
+            "Planned topics include BFS, DFS, backtracking, permutations, dynamic programming, and matching; Google Maps shortest path is given as a real-world example (Sc1007_videolecture). (Reference: Sc1007_videolecture (+ plans mentioned across both))"
+
+        ]
+
+################################################################################################
 
     async def get_dataset(self, video_id):
         results = []  # This will store the results for all questions
@@ -536,64 +548,140 @@ class EvaluatorService:
 
 
         results = []  # This will store the results for all questions
+        '''
+        {{
+        "routing_type": "SINGLE_DOC" | "MULTI_DOC" | "GENERAL_KB",
+        "user_query": "{user_query}",
+        "video_ids": ["<filled_by_you_or_list_all_for_GENERAL>"],  //
+        "is_temporal": true | false,
+        "temporal_signals": {{
+            "explicit_timestamps": ["<mm:ss>", "..."],
+            "time_expressions": ["<phrase>", "..."],
+            "ordinal_events": ["<before/after X>", "..."],
+            "relative_dates": ["<Week 9>", "<Recess Week>", "..."]
+        }},
+        "query_variants": [
+            {{ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_1>" }},
+            {{ "video_id": "<MUST_MATCH_one_of_video_ids_related_or_null>", "question": "<variant_2>" }}
+            // MULTI_DOC will naturally have more items (2 per video_id).
+            // GENERAL_KB must have exactly 3 items with "video_id": null.
+        ]
+        }}
+        '''
+        
                 
         # Process each video ID in the array
                   
-        for i in range(len(self.generic_questions)):
+        for i in range (len(self.multidocs_questions)):
             start_time = time.time()
-            # question = self.questions[i]
-            question = "What was talked about at 23:00 in Sc1007_videolecture and did Lecture2_Sc1007 mention BFS?"
+            question = self.multidocs_questions[i]
+            answers_template = self.multidocs_answers[i]
+            # #single docs
+            # question = "According to Sc1007_videolecture, is the lab graded, and how is attendance handled?" #single Docs
+            # #General Question
+            # # question = "Across the lectures, which graph-related topics are planned and what real-world path problem is used as an example?"
 
             json_results_llm = await self.chat_service.route_pre_qrag(user_query=question,video_map=video_mapping)
 
             print("Here is the json output: \n", json_results_llm)
-            return
 
-
+            # Routing skeleton based on model output
+            try:
+                routing_type = json_results_llm.get("routing_type")
+                temporal_flag = json_results_llm.get("is_temporal", False)
+                explicit_timestamps = json_results_llm.get("temporal_signals", {}).get("explicit_timestamps", [])
+                video_ids = json_results_llm.get("video_ids", [])
+                query_variants = json_results_llm.get("query_variants", [])
             
-            # Step 1: Anchor Extraction and temporal check. Get the video title for reference and Timestamp if any, 
-            # also map the title to the video id here. output =  {{"video_dis:"{video_id1:"...",vide_id2:"..."}},{{"Timestamps:"{"{video_id1_timestamp:"...",video_id2_timestamp:"..."}}"}
-            #Step 2: Decide if Single or MultiDocs. If more than 1 video_dis in video_dis then multicdocs, else single docs.
-            #Step 3: For single Docs, generte query variants into 2 query_variants. Then normal retrieval video_id, timestamp if any. For each query variant, retrieve the top 6 (sparse and dense) chunks, then do RRF top 6 from 12. Then generate the response with the Original query and chunks.
-            #Step 4: For multi docs, generate query_variants into 2 query_variants. Then retrieve chunks based on that question for each video id. 
-            #Step 5: For General Queries, rewrite the question into 2 query variants. Retrieve the top 6 (sparse and dense) chunks, then do RRF top 6 from 12. Then generate the response with the Original query and chunks.
-            
-            # Send the query and the video map to the LLM
-
-
-
-            for video_id in video_mapping:
-
-            # Step 1: check if the question requires single docs or multidocs query, video_id and title map
-                question_checker = await self.chat_service.is_temporal_question(question)
-                is_temporal = is_temporal_res.is_temporal
-                timestamp = is_temporal_res.timestamp
-
-                context = []
-                answer = ""
-
-                if is_temporal:
-                    if timestamp:
-                        # Step 3: Retrieve chunks based on the timestamp
-                        retrieval_results, context = self.chat_service.retrieve_chunks_by_timestamp(video_id, timestamp)
-                        answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
-                    else:
-                        # fallback if timestamp not extractable
-                        retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, question)
-                        answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
-                else:
-                    retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, question)
+                if routing_type == "SINGLE_DOC":
+                    
+                    retrieval_results, context = self.chat_service.handle_single_docs(query_variants, temporal_flag, explicit_timestamps)
                     answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
-                
-                # TODO: Add evaluation logic here similar to other functions
-                # For now, just print the results
-                print(f"Question: {question}")
-                print(f"Answer: {answer}")
-                print(f"Context: {context}")
-                print("-" * 50)
+                    pass
+
+                elif routing_type == "MULTI_DOC":
+                    
+                    retrieval_results, context = self.chat_service.handle_single_docs(query_variants, temporal_flag, explicit_timestamps)
+                    answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
+                    pass
+                else:
+                    # unexpected routing type (temporal)
+                    pass
+
+                # if temporal_flag:
+                #     if routing_type == "SINGLE_DOC":
+                #         # feed the video_id, temporal_flag, temporal_Signal, Query_variants
+                #         retrieval_results, context = self.chat_service.handle_single_docs(video_ids, query_variants, temporal_flag, explicit_timestamps)
+                #         answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
+                #         # print(f"Response from LLM: {answer}. Ends here")
+                #         print(context)
+                #         return
+                #         pass
+                #     elif routing_type == "MULTI_DOC":
+                #         pass
+                #     elif routing_type == "GENERAL_KB":
+                #         pass
+                #     else:
+                #         # unexpected routing type (temporal)
+                #         pass
+                # else:
+                #     if routing_type == "SINGLE_DOC":
+                #         # feed the video_id, temporal_flag, temporal_Signal, Query_variants
+                #         retrieval_results, context = self.chat_service.handle_single_docs(video_ids, query_variants, temporal_flag, explicit_timestamps)
+                #         print(context)
+                #         return
+                #         answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
+                #         # print(f"Response from LLM : {answer}. Ends here")
+
+                #         pass
+                #     elif routing_type == "MULTI_DOC":
+                #         pass
+                #     elif routing_type == "GENERAL_KB":
+                #         pass
+                #     else:
+                #         # unexpected routing type (non-temporal)
+                #         pass
+            except Exception as e:
+                # minimal error handling skeleton
+                print(f"[get_dataset_preQRAG_llm] Routing error: {e}")
 
 
+            end_time = time.time()
+            time_taken = end_time - start_time
+
+            # Evaluate metrics
+            context_precision = await self.evaluate_context_precision(question, answers_template, context)
+            response_relevancy = await self.evaluate_response_relevancy(question, answer, context)
+            faithfulness_result = await self.evaluate_faithfulness(question, answer, context)
+            context_recall = await self.evaluate_context_recall(question, answer, answers_template,
+                                                                context)
+
+
+            # # Store the results for this question in a dictionary
+            result = {
+                'question': question,
+                'ground_truth': answers_template,
+                'context': context,
+                'answer': answer,
+                'context_precision': context_precision,
+                'response_relevancy': response_relevancy,
+                'faithfulness_result': faithfulness_result,
+                'context_recall': context_recall,
+                'time_taken': time_taken,
+                'question type': routing_type
+            }
+
+
+            results.append(result)
+            print("Iteration " + str(i) + " took " + str(time_taken) + " seconds")
+            
+
+            with open("evaluation_results_multidocs.json", mode='w', newline='') as jsonfile:
+                json.dump(results, jsonfile, indent=4)
         
+
+            print("End here")
+            return        
 
     #nicole ^
 
