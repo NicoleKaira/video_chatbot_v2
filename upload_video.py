@@ -12,12 +12,12 @@ def encode_file_to_base64(file_path):
         encoded_string = base64.b64encode(f.read()).decode("utf-8")
     return encoded_string
 
-def send_to_api(base64_str, file_name, description="The course head is Dr Loke."):
+def send_to_api(base64_str, file_name, description="Lecture4"):
     url = "http://localhost:8080/upload"
     payload = {
-        "course_code": "SC1007",
+        "course_code": "SC1177",
         "video": [{
-            "video_name": "Sc1007_videolecture",
+            "video_name": "Lecture4_Sc1007",
             "video_description": description,
             "base64_encoded_video": base64_str
         }]
@@ -32,7 +32,8 @@ def send_to_api(base64_str, file_name, description="The course head is Dr Loke."
 
 def main():
     # Get file path from command line or prompt
-    file_path = r"C:\Users\nicol\OneDrive\Desktop\lecture-chatbot-repo\z_downloadedVideo\sc1007_720_2.mp4"
+    file_path = r"C:\Users\nicol\OneDrive\Desktop\videos_3\Lecture4 Sc1007.mp4"
+    
 
     file_name = os.path.basename(file_path)
     base64_str = encode_file_to_base64(file_path)

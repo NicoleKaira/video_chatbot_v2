@@ -56,7 +56,9 @@ import yt_dlp
 # YouTube video URLs to download
 # url = 'https://www.youtube.com/live/gn-GUwOsLMo?si=sWr43jlFXXVKcSlZ'  # Dr. Loke Lecture 1
 # url = 'https://www.youtube.com/live/Z_T09vQpl00?si=QyCTA2BGhEl2ZZaE'  # Dr. Loke Lecture 2
-url = 'https://www.youtube.com/live/xyuTU3v_qWs?si=b0s2yJdmxXiSDxq8' #Dr.loke Lecture 3
+# url = 'https://www.youtube.com/live/xyuTU3v_qWs?si=b0s2yJdmxXiSDxq8' #Dr.loke Lecture 3
+# url = 'https://www.youtube.com/live/X3xCckK_qfk?si=l9n952oSZC1SJcj9' #Dr Loke Lecture 4
+url ='https://www.youtube.com/live/PkZn5gipMRE?si=7Sktmi5cxRPSFyh8' #Dr Loke Lecture 5
 
 # Configuration options for yt-dlp
 ydl_opts = {

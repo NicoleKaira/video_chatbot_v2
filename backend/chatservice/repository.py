@@ -165,7 +165,26 @@ class ChatDatabaseService:
 
     # nicole mutlivideo RAG4.0
     def retrieve_results_prompt_semantic_v2_multivid(self, video_ids: list, user_prompt: str):
-        print(video_ids)
+        print(f"Input video_ids: {video_ids}, type: {type(video_ids)}")
+        
+        # Input validation: ensure video_ids is a list
+        if not isinstance(video_ids, list):
+            if isinstance(video_ids, dict):
+                # If it's a dict, try to extract values
+                if "video_map" in video_ids:
+                    video_ids = list(video_ids["video_map"].values())
+                    print(f"Extracted video_ids from dict: {video_ids}")
+                else:
+                    video_ids = list(video_ids.values())
+                    print(f"Extracted video_ids from dict values: {video_ids}")
+            else:
+                # Convert single value to list
+                video_ids = [video_ids]
+                print(f"Converted single value to list: {video_ids}")
+        
+        # Ensure we have at least one video ID
+        if not video_ids:
+            raise ValueError("video_ids cannot be empty")
 
         # Find all video documents that match any of the video IDs in the list
         video_reference_ids = self.video_collection.find({"video_id": {"$in": video_ids}})
@@ -220,6 +239,27 @@ class ChatDatabaseService:
         
     #nicole mulitdocs RAG 4.0
     def retrieve_results_prompt_text_v2_multivid(self, video_ids, user_query):
+        print(f"Input video_ids (text): {video_ids}, type: {type(video_ids)}")
+        
+        # Input validation: ensure video_ids is a list
+        if not isinstance(video_ids, list):
+            if isinstance(video_ids, dict):
+                # If it's a dict, try to extract values
+                if "video_map" in video_ids:
+                    video_ids = list(video_ids["video_map"].values())
+                    print(f"Extracted video_ids from dict (text): {video_ids}")
+                else:
+                    video_ids = list(video_ids.values())
+                    print(f"Extracted video_ids from dict values (text): {video_ids}")
+            else:
+                # Convert single value to list
+                video_ids = [video_ids]
+                print(f"Converted single value to list (text): {video_ids}")
+        
+        # Ensure we have at least one video ID
+        if not video_ids:
+            raise ValueError("video_ids cannot be empty")
+            
         # Find all video documents that match any of the video IDs in the list
         video_reference_ids = self.video_collection.find({"video_id": {"$in": video_ids}})
         video_reference_list = list(video_reference_ids)

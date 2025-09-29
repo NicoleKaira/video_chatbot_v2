@@ -160,8 +160,8 @@ class ChatService:
     def retrieve_results_prompt_clean(self, video_id, message, top_n: int=5):
         docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2(video_id, message)
         docs_text = self.chat_db.retrieve_results_prompt_text_v2(video_id, message)
-        logger.info(list(docs_semantic))
-        logger.info(list(docs_text))
+        # logger.info(list(docs_semantic))
+        # logger.info(list(docs_text))
         doc_lists = [docs_semantic, docs_text]
         # Enforce that retrieved docs are the same form for each list in retriever_docs
         for i in range(len(doc_lists)):
@@ -170,15 +170,15 @@ class ChatService:
                 for doc in doc_lists[i]]
         fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
         retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
-        print(retrieval_results)
+        # print(retrieval_results)
         return retrieval_results, [doc['text'] for doc in fused_documents]
     
     #nicole added for multivideo
     def retrieve_results_prompt_clean_multivid(self, video_ids, message, top_n: int=5):
         docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(video_ids, message)
         docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(video_ids, message)
-        logger.info(list(docs_semantic))
-        logger.info(list(docs_text))
+        # logger.info(list(docs_semantic))
+        # logger.info(list(docs_text))
         doc_lists = [docs_semantic, docs_text]
         # Enforce that retrieved docs are the same form for each list in retriever_docs
         for i in range(len(doc_lists)):
@@ -187,7 +187,7 @@ class ChatService:
                 for doc in doc_lists[i]]
         fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
         retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
-        print(retrieval_results)
+        # print(retrieval_results)
         return retrieval_results, [doc['text'] for doc in fused_documents]
 
     
@@ -312,23 +312,23 @@ class ChatService:
         except Exception as e:
             print(f"[route_pre_qrag] Error: {e}")
             # Return a minimal fallback structure to avoid breaking callers
-            return {
-                "routing_type": "GENERAL_KB",
-                "user_query": user_query,
-                "video_ids": [],
-                "is_temporal": False,
-                "temporal_signals": {
-                    "explicit_timestamps": [],
-                    "time_expressions": [],
-                    "ordinal_events": [],
-                    "relative_dates": []
-                },
-                "query_variants": [
-                    {"video_id": None, "question": user_query}
-                ]
-            }
+            # return {
+            #     "routing_type": "GENERAL_KB",
+            #     "user_query": user_query,
+            #     "video_ids": [],
+            #     "is_temporal": False,
+            #     "temporal_signals": {
+            #         "explicit_timestamps": [],
+            #         "time_expressions": [],
+            #         "ordinal_events": [],
+            #         "relative_dates": []
+            #     },
+            #     "query_variants": [
+            #         {"video_id": None, "question": user_query}
+            #     ]
+            # }
         
-    def handle_single_docs(self, queryVariants, temporal_flag, temporal_signals, top_n: int=3):
+    def retrival_singledocs_multidocs(self, queryVariants, top_n: int=3):
         '''
         How do i want the single to work:
         If temporal_flag == yes
@@ -349,10 +349,10 @@ class ChatService:
         
         for i in range(len(queryVariants)):
             variant = queryVariants[i]
-            vid_value = variant.get('video_id') if isinstance(variant, dict) else None
-            sub_query = variant.get('question') if isinstance(variant, dict) else ""
-            # Ensure video_ids is an array for $in filter downstream
-            vid_list = [vid_value] if isinstance(vid_value, str) else (vid_value or [])
+
+            vid_list = variant.get('video_ids')
+            sub_query = variant.get('question')
+            
             docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
             docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
             # logger.info(list(docs_semantic))

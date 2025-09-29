@@ -52,11 +52,11 @@ class BrokerService:
                 try:
                     print("starting...")
                     #nicole change this part
-                    #video_id, insights = self.video_indexer_service.index_video(video)
-
+                    # video_id, insights = self.video_indexer_service.index_video(video)
+                    # print("done with the index video function, returning back to main")
                     #nicole addition:
-                    #video_id, insights = self.video_indexer_service.index_video_from_file("output.json")
-                    video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="sm1zzt8081")
+                    video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="3qkbj4qznk")
+                  
 
                     #get thumbnail from video indexer
                     thumbnail_id = insights["summarizedInsights"]["thumbnailId"]

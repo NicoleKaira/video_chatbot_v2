@@ -1,0 +1,114 @@
+Video mapping for course SC1177: {'video_map': {'Sc1007_videolecture': 'zwb6lqhpzl', 'Lecture2_Sc1007': 'tg2fy923h1', 'Lecture3_Sc1007': 'sm1zzt8081'}}
+PreQRAG routing result for Question 1:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'According to the lecturer in Sc1007_videolecture, is the lab graded, and how is attendance handled?', 'video_ids': ['zwb6lqhpzl'], 'query_variants': [{'video_ids': ['zwb6lqhpzl'], 'question': 'Is the lab graded in Sc1007_videolecture?', 'temporal_signal': []}, {'video_ids': ['zwb6lqhpzl'], 'question': 'How is attendance managed in Sc1007_videolecture?', 'temporal_signal': []}]}
+['zwb6lqhpzl']
+Query variant 0: 3 chunks
+['zwb6lqhpzl']
+Query variant 1: 3 chunks
+0.0
+1.0
+1.0
+Question 1 completed in 7.10 seconds
+
+PreQRAG routing result for Question 2:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'In Sc1007_videolecture, what penalty does the lecturer state for plagiarism in assignments?', 'video_ids': ['zwb6lqhpzl'], 'query_variants': [{'video_ids': ['zwb6lqhpzl'], 'question': 'What is the plagiarism penalty in Sc1007?', 'temporal_signal': []}, {'video_ids': ['zwb6lqhpzl'], 'question': 'What penalty does the lecturer mention for plagiarism?', 'temporal_signal': []}]}
+['zwb6lqhpzl']
+Query variant 0: 3 chunks
+['zwb6lqhpzl']
+Query variant 1: 3 chunks
+0.9335882850768199
+1.0
+1.0
+Question 2 completed in 6.43 seconds
+
+PreQRAG routing result for Question 3:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'What programming language does the module use throughout, including the second half mentioned in Sc1007_videolecture?', 'video_ids': ['zwb6lqhpzl'], 'query_variants': [{'video_ids': ['zwb6lqhpzl'], 'question': 'What programming language is used in Sc1007_videolecture?', 'temporal_signal': []}, {'video_ids': ['zwb6lqhpzl'], 'question': 'Which programming language is featured in the second half of Sc1007_videolecture?', 'temporal_signal': []}]}
+['zwb6lqhpzl']
+Query variant 0: 3 chunks
+['zwb6lqhpzl']
+Query variant 1: 3 chunks
+0.0
+0.6666666666666666
+0.0
+Question 3 completed in 7.10 seconds
+
+PreQRAG routing result for Question 4:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'List the three essential characteristics of an algorithm mentioned by the lecturer in Sc1007_videolecture.', 'video_ids': ['zwb6lqhpzl'], 'query_variants': [{'video_ids': ['zwb6lqhpzl'], 'question': 'What are the three key characteristics of an algorithm?', 'temporal_signal': []}, {'video_ids': ['zwb6lqhpzl'], 'question': 'Identify the three essential features of an algorithm discussed.', 'temporal_signal': []}]}
+['zwb6lqhpzl']
+Query variant 0: 3 chunks
+['zwb6lqhpzl']
+Query variant 1: 3 chunks
+0.9670179953412825
+0.875
+0.5
+Question 4 completed in 7.38 seconds
+
+PreQRAG routing result for Question 5:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'When is the combined lab test and quiz scheduled, and what does the quiz cover mentioned in Sc1007_videolecture?', 'video_ids': ['zwb6lqhpzl'], 'query_variants': [{'video_ids': ['zwb6lqhpzl'], 'question': 'When is the lab test and quiz scheduled?', 'temporal_signal': []}, {'video_ids': ['zwb6lqhpzl'], 'question': 'What topics does the quiz cover in Sc1007?', 'temporal_signal': []}]}
+['zwb6lqhpzl']
+Query variant 0: 3 chunks
+['zwb6lqhpzl']
+Query variant 1: 3 chunks
+0.9386144611452223
+1.0
+0.6666666666666666
+Question 5 completed in 6.67 seconds
+
+PreQRAG routing result for Question 6:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'In the factorial example with a while loop mentioned in Lecture2_Sc1007, how does computational time scale with N?', 'video_ids': ['tg2fy923h1'], 'query_variants': [{'video_ids': ['tg2fy923h1'], 'question': 'Factorial while loop time complexity scaling with N?', 'temporal_signal': []}, {'video_ids': ['tg2fy923h1'], 'question': 'How does computational time for factorial scale with N in the while loop?', 'temporal_signal': []}]}
+['tg2fy923h1']
+Query variant 0: 3 chunks
+['tg2fy923h1']
+Query variant 1: 3 chunks
+'charmap' codec can't encode character '\u2264' in position 1571: character maps to <undefined>
+0.9530181346911833
+1.0
+1.0
+Question 6 completed in 7.40 seconds
+
+PreQRAG routing result for Question 7:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'In Lecture2_Sc1007, for a nested loop that sums all elements in an NxN matrix, what is the time complexity?', 'video_ids': ['tg2fy923h1'], 'query_variants': [{'video_ids': ['tg2fy923h1'], 'question': 'Time complexity of nested loop summing NxN matrix?', 'temporal_signal': []}, {'video_ids': ['tg2fy923h1'], 'question': 'What is the time complexity for summing elements in an NxN matrix using nested loops?', 'temporal_signal': []}]}
+['tg2fy923h1']
+Query variant 0: 3 chunks
+['tg2fy923h1']
+Query variant 1: 3 chunks
+'charmap' codec can't encode character '\u2264' in position 3434: character maps to <undefined>
+0.9817018777755425
+1.0
+1.0
+Question 7 completed in 7.04 seconds
+
+PreQRAG routing result for Question 8:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'What cases should be considered when analyzing selection structures (if/else) for time complexity mentioned in Lecture2_Sc1007?', 'video_ids': ['tg2fy923h1'], 'query_variants': [{'video_ids': ['tg2fy923h1'], 'question': 'What cases affect time complexity in if/else structures?', 'temporal_signal': []}, {'video_ids': ['tg2fy923h1'], 'question': 'How to analyze time complexity for selection structures?', 'temporal_signal': []}]}
+['tg2fy923h1']
+Query variant 0: 3 chunks
+['tg2fy923h1']
+Query variant 1: 3 chunks
+'charmap' codec can't encode character '\u2264' in position 1766: character maps to <undefined>
+0.9128351034907428
+0.875
+1.0
+Question 8 completed in 6.59 seconds
+
+PreQRAG routing result for Question 9:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'In Lecture2_Sc1007, what is the recurrence for counting comparisons in a simple recursive array scan, and what does it solve to?', 'video_ids': ['tg2fy923h1'], 'query_variants': [{'video_ids': ['tg2fy923h1'], 'question': 'What is the recurrence for comparisons in recursive array scan?', 'temporal_signal': []}, {'video_ids': ['tg2fy923h1'], 'question': 'How does the recurrence for array scan comparisons solve?', 'temporal_signal': []}]}
+['tg2fy923h1']
+Query variant 0: 3 chunks
+['tg2fy923h1']
+Query variant 1: 3 chunks
+'charmap' codec can't encode character '\u2264' in position 5374: character maps to <undefined>
+0.9654551690893055
+0.8571428571428571
+0.6666666666666666
+Question 9 completed in 6.85 seconds
+
+PreQRAG routing result for Question 10:
+{'routing_type': 'SINGLE_DOC', 'user_query': 'In a binary-tree traversal that makes two recursive calls per node, how does the number of operations grow with the number of levels K, mentioned in Lecture2_Sc1007?', 'video_ids': ['tg2fy923h1'], 'query_variants': [{'video_ids': ['tg2fy923h1'], 'question': 'How does binary-tree traversal operations grow with levels K?', 'temporal_signal': []}, {'video_ids': ['tg2fy923h1'], 'question': 'What is the growth of operations in binary-tree traversal with K levels?', 'temporal_signal': []}]}
+['tg2fy923h1']
+Query variant 0: 3 chunks
+['tg2fy923h1']
+Query variant 1: 3 chunks
+0.8933993743809668
+0.9
+0.5
+Question 10 completed in 7.95 seconds
