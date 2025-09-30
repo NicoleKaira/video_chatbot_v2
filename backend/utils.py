@@ -284,7 +284,7 @@ def get_prompt_preQrag():
     Each variant's "video_ids" = [that single mapped id].
     - MULTI_DOC: produce **exactly 2** decomposed sub-questions.
     Each variant's "video_ids" = all related ids; if none specified, use **top-level video_ids** (i.e., all videos).
-    - For each variant, "temporal_signal" = list of timestamps ["hh:mm:ss"] relevant to that variant, else [].
+    - For each variant, set "temporal_signal" as: Time range -> ["start_time", "end_time"] (HH:MM:SS). Single time point -> ["time"]. No timing -> [].   
     - Keep each question ≤ 18 words; no duplicates; no invented facts.
 
     CONSTRAINTS

@@ -13,7 +13,7 @@ from sqlalchemy.testing.suite.test_reflection import metadata
 from EmbeddingService import EmbeddingService
 from databaseservice.databaseService import DatabaseService, database_service
 from loggingConfig import logger
-from utils import convert_seconds_to_mm_ss
+from utils import timestamp_to_seconds
 from langchain_community.vectorstores import AzureCosmosDBVectorSearch
 from langchain_openai import AzureOpenAIEmbeddings
 
@@ -294,3 +294,116 @@ class ChatDatabaseService:
         retrieval_results = [Document(page_content=doc['textContent']) for doc in docs_semantic]
         print(retrieval_results)
         return retrieval_results, [doc['textContent'] for doc in docs_semantic]
+
+
+        #nicole added for temporal question retrieval
+    
+    
+    def retrieve_chunks_by_timestamp(self, video_ids: list, timestamp: list):
+        """
+        Retrieve chunks from prompt_content_clean collection based on timestamp(s).
+        
+        Args:
+            video_ids (list): List of video IDs to search in
+            timestamp (list): List of timestamps in format "MM:SS" or "HH:MM:SS"
+                - If 1 timestamp: searches within ±2 minutes of that timestamp
+                - If 2 timestamps: searches within the range [start_timestamp, end_timestamp]
+            
+        Returns:
+            list: [retrieval_results, context, metadata_list]
+                - retrieval_results: List of Document objects
+                - context: List of text content
+                - metadata_list: List of metadata for each document
+        """
+        try:
+            # Validate video IDs exist
+            valid_video_ids = []
+            for video_id in video_ids:
+                video_reference = self.video_collection.find_one({"video_id": video_id})
+                if video_reference:
+                    valid_video_ids.append(video_id)
+                else:
+                    print(f"Video ID {video_id} not found")
+            
+            if not valid_video_ids:
+                print("No valid video IDs found")
+                return []
+            
+            # Determine timestamp range logic
+            if len(timestamp) == 1:
+                # Single timestamp: search within ±2 minutes
+                target_seconds = timestamp_to_seconds(timestamp[0])
+                search_start = target_seconds - 120  # 2 minutes before
+                search_end = target_seconds + 120    # 2 minutes after
+                print(f"Searching within ±2 minutes of {timestamp[0]} (range: {search_start}s to {search_end}s)")
+            elif len(timestamp) == 2:
+                # Two timestamps: search within range
+                search_start = timestamp_to_seconds(timestamp[0])
+                search_end = timestamp_to_seconds(timestamp[1])
+                print(f"Searching within range {timestamp[0]} to {timestamp[1]} (range: {search_start}s to {search_end}s)")
+            else:
+                print(f"Invalid timestamp list length: {len(timestamp)}. Expected 1 or 2 timestamps.")
+                return []
+            
+            # Query the prompt_content_clean collection for all valid video IDs
+            docs = self.prompt_content_clean_index_collection.find(
+                {"metadata.video_id": {"$in": valid_video_ids}},
+                {
+                    "_id": 1,
+                    "textContent": 1,
+                    "metadata": 1
+                }
+            )
+            
+            matching_docs = []
+            metadata_list = []
+            
+            for doc in docs:
+                metadata = doc.get("metadata", {})
+                start_time_str = metadata.get("start")
+                end_time_str = metadata.get("end")
+                
+                if start_time_str and end_time_str:
+                    try:
+                        # Convert start and end times to seconds
+                        doc_start_seconds = timestamp_to_seconds(start_time_str)
+                        doc_end_seconds = timestamp_to_seconds(end_time_str)
+                        
+                        # Check if document time range overlaps with search range
+                        # Document overlaps if: doc_start <= search_end AND doc_end >= search_start
+                        if doc_start_seconds <= search_end and doc_end_seconds >= search_start:
+                            matching_docs.append(doc)
+                            metadata_list.append(metadata)
+                            print(f"Found matching doc: video_id={metadata.get('video_id')}, start={start_time_str}, end={end_time_str}")
+                            
+                    except Exception as e:
+                        print(f"Error parsing timestamp for doc {doc.get('_id')}: {e}")
+                        continue
+            
+            print(f"Found {len(matching_docs)} documents matching timestamp criteria across {len(valid_video_ids)} videos")
+            
+            # Create Document objects with metadata
+            retrieval_results = []
+            fused_documents = []
+            
+            for doc in matching_docs:
+                # Create Document with metadata
+                document = Document(
+                    page_content=doc['textContent'],
+                    metadata=doc.get('metadata', {})
+                )
+                retrieval_results.append(document)
+                
+                # Create fused document format for all_fused_documents
+                fused_doc = {
+                    "_id": str(doc.get('_id', 'temporal_' + str(hash(doc['textContent'])))),
+                    "text": doc['textContent'],
+                    "score": 1.0  # Temporal documents get a default score of 1.0
+                }
+                fused_documents.append(fused_doc)
+            
+            return retrieval_results, fused_documents
+            
+        except Exception as e:
+            print(f"[retrieve_chunks_by_timestamp] Error: {e}")
+            return []

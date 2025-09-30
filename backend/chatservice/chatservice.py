@@ -213,7 +213,9 @@ class ChatService:
         except Exception as e:
             print(f"[is_temporal_question] Error: {e}")
             return False
-    #nicole added
+    
+
+    #'delete later, shifted to repository.py (nicole)
     def retrieve_chunks_by_timestamp(self, video_id: str, timestamp: str):
         """
         Retrieve chunks from prompt_content_clean collection based on timestamp.
@@ -329,30 +331,16 @@ class ChatService:
             # }
         
     def retrival_singledocs_multidocs(self, queryVariants, top_n: int=3):
-        '''
-        How do i want the single to work:
-        If temporal_flag == yes
-        Loop into the queryVariants[], total of 2 queryvariance
-        1. Get first queryVariants[i] and temporal_signals[i]
-        2. Retrieve 3  chunks (+-2mins from the given temporal_signals)
-        Else
-        2. Retrieve sparse top 20 chunks 
-        4. Retrieve Dense top 20 chunks
-        5. RRF and get best top 3 chunks
-        Out of the loop, total of 6 chunks (3 from each queryvariant)
-        Return this 6 chunks
-        '''
+        
         all_retrieval_results = []
         all_fused_documents = []
-        video_ids = []
 
-        
         for i in range(len(queryVariants)):
             variant = queryVariants[i]
 
             vid_list = variant.get('video_ids')
             sub_query = variant.get('question')
-            
+                      
             docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
             docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
             # logger.info(list(docs_semantic))
@@ -372,6 +360,49 @@ class ChatService:
             all_fused_documents.extend(fused_documents)
         
         return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
+
+
+    def retrival_singledocs_multidocs_with_Temporal(self, queryVariants, top_n: int=3):
+            
+            all_retrieval_results = []
+            all_fused_documents = []
+
+            
+            for i in range(len(queryVariants)):
+                variant = queryVariants[i]
+
+                vid_list = variant.get('video_ids')
+                sub_query = variant.get('question')
+                temporal_signal  = variant.get('temporal_signal')
+
+                if temporal_signal:
+                    docs_temporal, temporal_fused_docs = self.chat_db.retrieve_chunks_by_timestamp(vid_list, temporal_signal)
+                    print(f"Query variant {i}: {len(docs_temporal)} chunks")
+                    all_retrieval_results.extend(docs_temporal)
+                    all_fused_documents.extend(temporal_fused_docs)
+                
+                docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
+                docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
+                # logger.info(list(docs_semantic))
+                # logger.info(list(docs_text))
+                doc_lists = [docs_semantic, docs_text]
+                # Enforce that retrieved docs are the same form for each list in retriever_docs
+                for j in range(len(doc_lists)):
+                    doc_lists[j] = [
+                        {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
+                        for doc in doc_lists[j]]
+                fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
+                retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
+                print(f"Query variant {i}: {len(retrieval_results)} chunks")
+
+                # Append results from this query variant
+                all_retrieval_results.extend(retrieval_results)
+                all_fused_documents.extend(fused_documents)
+            
+            return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
+
+    
+    
 
     
     

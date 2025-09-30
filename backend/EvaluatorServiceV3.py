@@ -20,12 +20,14 @@ from ragas.metrics import (
 
 from chatservice.chatservice import ChatService
 from brokerservice.brokerService import BrokerRepository
+from chatservice.repository import ChatDatabaseService
 
 load_dotenv()
 class EvaluatorService:
-    def __init__(self, chat_service: ChatService, broker_service: BrokerRepository, questions=None, ground_truths=None):
+    def __init__(self, chat_service: ChatService, broker_service: BrokerRepository, chat_db:ChatDatabaseService, questions=None, ground_truths=None):
         self.chat_service = chat_service
         self.broker_service = broker_service
+        self.chat_db = chat_db
         
         self.llm_evaluator = AzureChatOpenAI(
             azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
@@ -111,32 +113,32 @@ class EvaluatorService:
         # ]
 
 #####################part2 - Multi docs 
-        self.question_for_multivideos = [
-            "Across the lectures, which topics are planned after the analysis of algorithms and when might hash tables be covered?",
-            "Which lecture previews asymptotic notation and which one defines Big O, Big Ω, and Big Θ in detail?",
-            "Summarize how recursion impacts time and space across the lectures using examples given.",
-            "From the lectures, what is the difference between an algorithm and a program, and how is efficiency evaluated?",
-            "Combine the examples: which method is most efficient for summing 1..N, and how is this justified by the complexity principles?",
-            "What searching approaches are mentioned and how do their time complexities differ?",
-            "Considering the course logistics from the lectures, what assessments contribute to the final grade?",
-            "Using all lectures, explain why constants are ignored in asymptotic analysis and give an example where N^2 + 100 and N^2 are treated the same.",
-            "Across the lectures, which graph-related topics are planned and what real-world path problem is used as an example?",
-            "What guidance is given about coding vs. concepts across the lectures, and how should students prepare?"
-        ]
+        # self.question_for_multivideos = [
+        #     "Across the lectures, which topics are planned after the analysis of algorithms and when might hash tables be covered?",
+        #     "Which lecture previews asymptotic notation and which one defines Big O, Big Ω, and Big Θ in detail?",
+        #     "Summarize how recursion impacts time and space across the lectures using examples given.",
+        #     "From the lectures, what is the difference between an algorithm and a program, and how is efficiency evaluated?",
+        #     "Combine the examples: which method is most efficient for summing 1..N, and how is this justified by the complexity principles?",
+        #     "What searching approaches are mentioned and how do their time complexities differ?",
+        #     "Considering the course logistics from the lectures, what assessments contribute to the final grade?",
+        #     "Using all lectures, explain why constants are ignored in asymptotic analysis and give an example where N^2 + 100 and N^2 are treated the same.",
+        #     "Across the lectures, which graph-related topics are planned and what real-world path problem is used as an example?",
+        #     "What guidance is given about coding vs. concepts across the lectures, and how should students prepare?"
+        # ]
 
-        self.answer_for_multivideos= [
-            "Topics after analysis include hash tables, graph problems (BFS, DFS), backtracking, permutations, dynamic programming, matching, and later sorting/string processing. Hash tables are planned in the second half of the module and targeted around Week 8 to 9; Lecture 3 notes hash tables right after sequential/binary search.",
-            "Lecture 1 previews asymptotic analysis (time/space, Big-O). Lecture 3 defines asymptotic notation rigorously—Big O (upper bound), Big Ω (lower bound), and Big Θ (tight bound), with formal definitions and the limit method.",
-            "Recursive Fibonacci leads to exponential time (~2^N) and deeper call stacks; iterative Fibonacci is linear; a more advanced method achieves logarithmic time. Summing 1..N recursively is worse than the constant-time arithmetic formula. Memoization reduces time but uses extra space.",
-            "Algorithm: a finite, precise, unambiguous procedure independent of code. Program: an implementation of an algorithm in a language (e.g., C). Efficiency is evaluated by order of growth for time and space (best/worst/average cases) rather than exact runtimes.",
-            "Using the arithmetic series formula N(N+1)/2 is most efficient: O(1). A for-loop is O(N) and recursion adds overhead without benefit. By asymptotic principles, constant-time work is preferred as N grows.",
-            "Sequential/linear search: Θ(N). Binary search (on sorted data): Θ(log N). Hash table lookup: Θ(1) average via hashing and direct indexing (with a space–time trade-off).",
-            "Assessments: Assignments 40% (20% Dr Owen + 20% this lecturer), Lab Test 1 (Week ~1) 20%, Lab Test 2 + Quiz together in Week 14: 40% (20% lab + 20% quiz). Labs themselves are ungraded; attendance is taken.",
-            "Asymptotic analysis ignores constant terms and factors because we care about growth rate. Example: N^2 + 100 and N^2 are both Θ(N^2) for large N; the +100 is negligible.",
-            "Planned graph topics: BFS, DFS, backtracking, matching; applications include shortest-path search (e.g., Google Maps) and traveling salesman. A real-world path example is finding the shortest route from source to destination on a road network.",
-            "Lectures and tutorials emphasize concepts; code is not provided in notes. Students should practice coding in labs/at home to realize the algorithms. Reading solutions is discouraged—implement and test yourself to learn."
+        # self.answer_for_multivideos= [
+        #     "Topics after analysis include hash tables, graph problems (BFS, DFS), backtracking, permutations, dynamic programming, matching, and later sorting/string processing. Hash tables are planned in the second half of the module and targeted around Week 8 to 9; Lecture 3 notes hash tables right after sequential/binary search.",
+        #     "Lecture 1 previews asymptotic analysis (time/space, Big-O). Lecture 3 defines asymptotic notation rigorously—Big O (upper bound), Big Ω (lower bound), and Big Θ (tight bound), with formal definitions and the limit method.",
+        #     "Recursive Fibonacci leads to exponential time (~2^N) and deeper call stacks; iterative Fibonacci is linear; a more advanced method achieves logarithmic time. Summing 1..N recursively is worse than the constant-time arithmetic formula. Memoization reduces time but uses extra space.",
+        #     "Algorithm: a finite, precise, unambiguous procedure independent of code. Program: an implementation of an algorithm in a language (e.g., C). Efficiency is evaluated by order of growth for time and space (best/worst/average cases) rather than exact runtimes.",
+        #     "Using the arithmetic series formula N(N+1)/2 is most efficient: O(1). A for-loop is O(N) and recursion adds overhead without benefit. By asymptotic principles, constant-time work is preferred as N grows.",
+        #     "Sequential/linear search: Θ(N). Binary search (on sorted data): Θ(log N). Hash table lookup: Θ(1) average via hashing and direct indexing (with a space–time trade-off).",
+        #     "Assessments: Assignments 40% (20% Dr Owen + 20% this lecturer), Lab Test 1 (Week ~1) 20%, Lab Test 2 + Quiz together in Week 14: 40% (20% lab + 20% quiz). Labs themselves are ungraded; attendance is taken.",
+        #     "Asymptotic analysis ignores constant terms and factors because we care about growth rate. Example: N^2 + 100 and N^2 are both Θ(N^2) for large N; the +100 is negligible.",
+        #     "Planned graph topics: BFS, DFS, backtracking, matching; applications include shortest-path search (e.g., Google Maps) and traveling salesman. A real-world path example is finding the shortest route from source to destination on a road network.",
+        #     "Lectures and tutorials emphasize concepts; code is not provided in notes. Students should practice coding in labs/at home to realize the algorithms. Reading solutions is discouraged—implement and test yourself to learn."
 
-        ]
+        # ]
        
 #####################part3 - General questions
         # self.question_for_multivideos = [
@@ -198,30 +200,33 @@ class EvaluatorService:
 
 ################################################################################################
     ##### PART1 #####   temporal
-        # self.time_sensitive_questions = [
-        #     "What is mentioned at 33 minutes of the lecture?",
-        #     "What was discussed in 27:00 of the lecture?",
-        #     "When was the difference between algorithm and program discussed?",
-        #     "What concept is explained around 45:00 into the lecture?",
-        #     "At what point in the lecture does it start discussing How do we solve the different searching, graph and combinatorial problems?",
-        #     "What does the lecturer say right after the algorithm Vs program at 23 minutes in the video?",
-        #     "Does the lecturer explain graph problems before or after Combinatorial problems?",
-        #     "What was discussed before Learning outcomes?",
-        #     "What topic is discussed right after Algorithm Design Strategies?",
-        #     "Which topic comes just before the explanation of the Sorting Problem?",
-        #     "Which week or lecture covers the topic Hash Tables?",
-        #     "During which part of the lecture (start/middle/end) is Computer Science Programme Structure discussed?",
-        #     "What is covered in the last 5 minutes of the lecture?",
-        #     "What was discussed at the start of the lecture?",
-        #     "What was discussed at the end of the lecture?",
-        #     "What was said 2 minutes before Problem Type was introduced?",
-        #     "When did the lecturer mention the learning outcomes of this course?",
-        #     "What topic is discussed between 23:00 and 26:00?",
-        #     "When did the lecturer mention the overview of the lecture?",
-        #     "What topics were discussed between the 2 to 8 minutes of the lecture?"
+        self.question_for_multivideos = [
+            "In Lecture1 the lecturer introduced analysis of algorithms, while in Lecture3 more detail was given, what topics followed after this analysis in both lectures?"]#,
+        #     "What is mentioned at 33 minutes of Sc1007_videolecture?",
+        #     "What was discussed at 27:00 in Sc1007_videolecture?",
+        #     "When was the difference between algorithm and program discussed in Sc1007_videolecture?",
+        #     "What concept is explained around 45:00 into Sc1007_videolecture?",
+        #     "At what point in Sc1007_videolecture does searching, graph, and combinatorial problems begin?",
+        #     "What does the lecturer say right after algorithm vs program at 23 minutes in Sc1007_videolecture?",
+        #     "Does the lecturer explain graph problems before or after combinatorial problems in Sc1007_videolecture?",
+        #     "What was discussed before Learning Outcomes in Sc1007_videolecture?",
+        #     "What topic is discussed right after Algorithm Design Strategies in Sc1007_videolecture?",
+        #     "Which topic comes just before the explanation of the Sorting Problem in Sc1007_videolecture?",
+        #     "Which week or lecture covers Hash Tables in Sc1007_videolecture?",
+        #     "During which part of Sc1007_videolecture (start, middle, end) is Programme Structure discussed?",
+        #     "What is covered in the last 5 minutes of Sc1007_videolecture?",
+        #     "What was discussed at the start of Sc1007_videolecture?",
+        #     "What was discussed at the end of Sc1007_videolecture?",
+        #     "What was said 2 minutes before Problem Type was introduced in Sc1007_videolecture?",
+        #     "When did the lecturer mention the Learning Outcomes of the course in Sc1007_videolecture?",
+        #     "What topic is discussed between 23:00 and 26:00 in Sc1007_videolecture?",
+        #     "When did the lecturer mention the overview of the lecture in Sc1007_videolecture?",
+        #     "What topics were discussed between 2:00 and 8:00 in Sc1007_videolecture?"
         # ]
 
-        # self.time_sensitive_answers = [
+
+        self.answer_for_multivideos = [
+            "Lecture1: Hash tables and graph problems. Lecture3: Sequential search, binary search, and hash tables."]#,
         #     "At the 33-minute mark, the lecturer mentioned that the module will mainly cover problem types such as searching, graph problems, and combinatorial problems involving permutations.",
         #     "The lecturer discussed the Fibonacci sequence, using it as an example to illustrate algorithmic thinking and recursive problem-solving.",
         #     "The difference between an algorithm and a program was discussed around 21:00.",
@@ -243,43 +248,7 @@ class EvaluatorService:
         #     "The lecturer mentioned the overview of the lecture 57:00 onwards.",
         #     "The lecturer discussed the course schedule and the learning outcomes of the course."
         # ]
-     ##### PART2 ##### combined above
-    #     self.time_sensitive_questions = [
-    #     "Which week or lecture covers the topic Hash Tables?",
-    #     "During which part of the lecture (start/middle/end) is Computer Science Programme Structure discussed?",
-    #     "What is covered in the last 5 minutes of the lecture?",
-    #     "What was discussed at the start of the lecture?",
-    #     "What was discussed at the end of the lecture?",
-    #     "What was said 2 minutes before Problem Type was introduced?",
-    #     "When did the lecturer mention the learning outcomes of this course?",
-    #     "What topic is discussed between 23:00 and 26:00?",
-    #     "When did the lecturer mention the overview of the lecture?",
-    #     "What topics were discussed between the 2 to 8 minutes of the lecture?"
-    # ]
-
-    #     self.time_sensitive_answers = [
-    #     "The topic of Hash Tables is covered in Week 8 of the lecture.",
-    #     "The Computer Science Programme Structure is discussed at the beginning of the lecture.",
-    #     "In the last 5 minutes of the lecture, the lecturer emphasizes the importance of practicing coding independently rather than relying on provided solutions, highlighting that true understanding comes from implementing algorithms yourself. He also concludes the lecture and ends the live stream.",
-    #     "At the start of the lecture, Dr. Loke gave an introduction to the module, explained the format of the live stream and lecture notes, and outlined the topics to be covered, including the analysis of algorithms, hash tables, and graph problems in the second half of the module.",
-    #     "A Question-and-answer session with the students, where the lecturer discussed how labs and tutorials could support their learning in the module.",
-    #     "Two minutes before the Problem Type was introduced, the Fibonacci Sequence was discussed.",
-    #     "The lecturer mentioned the learning outcomes of the course between 07:00 and 09:45",
-    #     "Between 23:00 and 26:00, an example on the arithmetic series is discussed.",
-    #     "The lecturer mentioned the overview of the lecture 57:00 onwards.",
-    #     "The lecturer discussed the course schedule and the learning outcomes of the course."
-    # ]
-################################################################################################
-# #question for multidocs preQRAG
-
-#         self.one_question = [
-#             "Across the lectures, which graph-related topics are planned and what real-world path problem is used as an example?"
-            
-#         ]
-#         self.one_answer = [
-#             "Planned topics include BFS, DFS, backtracking, permutations, dynamic programming, and matching; Google Maps shortest path is given as a real-world example (Sc1007_videolecture). (Reference: Sc1007_videolecture (+ plans mentioned across both))"
-
-#         ]
+     
 
 ################################################################################################
 
@@ -317,8 +286,13 @@ class EvaluatorService:
             json.dump(results, jsonfile, indent=4)
 
 #nicole multivideo RAGV4.0
-    async def get_dataset_mutlivid(self, video_ids):
+    async def Ragv3_only(self, course_code):
         results = []  # This will store the results for all questions
+
+        video_mapping_result = self.broker_service.get_video_id_title_mapping(course_code)
+        video_ids = list(video_mapping_result.get("video_map", {}).values())
+        print(f"Extracted video IDs: {video_ids}")
+
 
         # Iterate through the questions and evaluate the answers
         for i in range(len(self.question_for_multivideos)):
@@ -360,7 +334,6 @@ class EvaluatorService:
             json.dump(results, jsonfile, indent=4)
         
         return
-
 
     async def get_dataset_pre(self, video_id):
         results = []  # This will store the results for all questions
@@ -505,8 +478,13 @@ class EvaluatorService:
             json.dump(results, jsonfile, indent=4)
 
     #nicoles below
-    async def get_dataset_t_with_llm(self, video_id):
+    async def Ragv3_Temporal_only(self, course_code):
         results = []  # This will store the results for all questions
+
+
+        video_mapping_result = self.broker_service.get_video_id_title_mapping(course_code)
+        video_ids = list(video_mapping_result.get("video_map", {}).values())
+        print(f"Extracted video IDs: {video_ids}")
 
         questions_template = self.time_sensitive_questions
         answers_template = self.time_sensitive_answers
@@ -530,14 +508,14 @@ class EvaluatorService:
             if is_temporal:
                 if timestamp:
                     # Step 3: Retrieve chunks based on the timestamp
-                    retrieval_results, context = self.chat_service.retrieve_chunks_by_timestamp(video_id, timestamp)
+                    retrieval_results, context = self.chat_db.retrieve_chunks_by_timestamp(video_ids, timestamp)
                     answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
                 else:
                     # fallback if timestamp not extractable
-                    retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, question)
+                    retrieval_results, context = self.chat_service.retrieve_results_prompt_clean_multivid(video_ids, question)
                     answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
             else:
-                retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, question)
+                retrieval_results, context = self.chat_service.retrieve_results_prompt_clean_multivid(video_ids, question)
                 answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
             
             end_time = time.time()
@@ -545,10 +523,11 @@ class EvaluatorService:
             
             # Evaluate metrics
             context_precision = await self.evaluate_context_precision(questions_template[i], answers_template[i], context)
+            context_recall = await self.evaluate_context_recall(questions_template[i], answer, answers_template[i],context)
+            faithfulness_result = await self.evaluate_faithfulness(questions_template[i], answer, context)                                                    
             response_relevancy = await self.evaluate_response_relevancy(questions_template[i], answer, context)
-            faithfulness_result = await self.evaluate_faithfulness(questions_template[i], answer, context)
-            context_recall = await self.evaluate_context_recall(questions_template[i], answer, answers_template[i],
-                                                                context)
+            
+            
 
             # # Store the results for this question in a dictionary
             result = {
@@ -557,9 +536,9 @@ class EvaluatorService:
                 'context': context,
                 'answer': answer,
                 'context_precision': context_precision,
-                'response_relevancy': response_relevancy,
-                'faithfulness_result': faithfulness_result,
                 'context_recall': context_recall,
+                'faithfulness_result': faithfulness_result,
+                'response_relevancy': response_relevancy,               
                 'temporal_information': is_temporal_res.dict(),  # Convert to dict for JSON serialization
                 'time_taken': time_taken,
                 'question_number': i+1
@@ -574,9 +553,7 @@ class EvaluatorService:
             json.dump(results, jsonfile, indent=4)
 
     #Nicole^
-
-    #nicole below
-    async def get_dataset_preQRAG_llm(self, course_code: str) -> None:
+    async def Ragv3_preQRAG_llm(self, course_code: str) -> None:
         """
         Evaluate multi-document questions using PreQRAG routing and LLM-based retrieval.
         
@@ -650,9 +627,10 @@ class EvaluatorService:
             # Evaluate answer quality using multiple metrics
             try:
                 context_precision = await self.evaluate_context_precision(question, answers_template, context)
-                response_relevancy = await self.evaluate_response_relevancy(question, answer, context)
-                faithfulness_result = await self.evaluate_faithfulness(question, answer, context)
                 context_recall = await self.evaluate_context_recall(question, answer, answers_template, context)
+                faithfulness_result = await self.evaluate_faithfulness(question, answer, context)
+                response_relevancy = await self.evaluate_response_relevancy(question, answer, context)
+            
             except Exception as e:
                 print(f"[get_dataset_preQRAG_llm] Error evaluating Question {i+1}: {e}")
                 # Set default values if evaluation fails
@@ -666,9 +644,9 @@ class EvaluatorService:
                 'context': context,
                 'answer': answer,
                 'context_precision': context_precision,
-                'response_relevancy': response_relevancy,
-                'faithfulness_result': faithfulness_result,
                 'context_recall': context_recall,
+                'faithfulness_result': faithfulness_result,
+                'response_relevancy': response_relevancy,
                 'question_type': routing_type,
                 'time_taken': time_taken,
                 'question_index': i + 1
@@ -683,6 +661,120 @@ class EvaluatorService:
                 json.dump(results, jsonfile, indent=4)
         except Exception as e:
             print(f"Error saving results to file: {e}")
+        
+        return
+
+    #nicole below
+    async def Ragv3_preQRAG_temporal(self, course_code: str) -> None:
+        """
+        Evaluate multi-document questions using PreQRAG routing and LLM-based retrieval.
+        
+        This function processes a set of multi-video questions, routes them using PreQRAG,
+        retrieves relevant context, generates answers, and evaluates the performance
+        using various metrics (context precision, response relevancy, faithfulness, context recall).
+        
+        
+        Expected PreQRAG Output Format:
+        {
+            "routing_type": "SINGLE_DOC" | "MULTI_DOC",
+            "user_query": "original question",
+            "video_ids": ["video_id_1", "video_id_2"],
+            "query_variants": [
+                {
+                    "video_ids": ["video_id_1", "video_id_2"],
+                    "question": "rewritten question variant",
+                    "temporal_signal": ["hh:mm:ss"]
+                }
+            ]
+        }
+        
+        Args:
+            course_code (str): Course code to retrieve video mappings for evaluation
+            
+        Returns:
+            None: Results are saved to 'evaluation_results_multidocs.json'
+            
+        Raises:
+            Exception: Logs routing errors but continues processing other questions
+        """
+        # Initialize results storage
+        results = []
+        
+        # Get video mapping for the course
+        video_mapping = self.broker_service.get_video_id_title_mapping(course_code)
+        print(f"Video mapping for course {course_code}: {video_mapping}")
+        
+        # Process each multi-video question
+        for i, question in enumerate(self.question_for_multivideos):
+            start_time = time.time()
+            answers_template = self.answer_for_multivideos[i]
+            
+            try:
+                # Route question using PreQRAG
+                json_results_llm = await self.chat_service.route_pre_qrag(
+                    user_query=question, 
+                    video_map=video_mapping
+                )
+                print(f"PreQRAG routing result for Question {i+1}:\n{json_results_llm}")
+                
+                # Extract routing information
+                routing_type = json_results_llm.get("routing_type")
+                query_variants = json_results_llm.get("query_variants")
+                
+                # Retrieve relevant documents and generate context
+                retrieval_results, context = self.chat_service.retrival_singledocs_multidocs_with_Temporal(query_variants)
+                
+                # Generate answer using retrieved context
+                answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
+                
+            except Exception as e:
+                print(f"[get_dataset_preQRAG_llm] Error processing Question {i+1}: {e}")
+                # Continue with next question if current one fails
+                continue
+            
+            # Calculate processing time
+            end_time = time.time()
+            time_taken = end_time - start_time
+            
+            # Evaluate answer quality using multiple metrics
+            try:
+                context_precision = await self.evaluate_context_precision(question, answers_template, context)
+                context_recall = await self.evaluate_context_recall(question, answer, answers_template, context)
+                faithfulness_result = await self.evaluate_faithfulness(question, answer, context)
+                response_relevancy = await self.evaluate_response_relevancy(question, answer, context)
+            
+            except Exception as e:
+                print(f"[get_dataset_preQRAG_llm] Error evaluating Question {i+1}: {e}")
+                # Set default values if evaluation fails
+                # context_precision = response_relevancy = faithfulness_result = context_recall = 0.0
+            
+
+            # Store evaluation results
+            result = {
+                'question': question,
+                'ground_truth': answers_template,
+                'context': context,
+                'answer': answer,
+                'context_precision': context_precision,
+                'context_recall': context_recall,
+                'faithfulness_result': faithfulness_result,
+                'response_relevancy': response_relevancy,
+                'question_type': routing_type,
+                'time_taken': time_taken,
+                'question_index': i + 1
+            }
+            
+            results.append(result)
+            print(f"Question {i+1} completed in {time_taken:.2f} seconds")
+        
+        # Save all results to JSON file
+        try:
+            with open("evaluation_results_multidocs.json", mode='w', newline='') as jsonfile:
+                json.dump(results, jsonfile, indent=4)
+        except Exception as e:
+            print(f"Error saving results to file: {e}")
+        
+        return
 
 
 
@@ -793,6 +885,7 @@ class EvaluatorService:
             retrieved_contexts=retrieved_contexts,
         )
         result = await context_precision.single_turn_ascore(sample)
+        print(result)
         return result
 
     async def evaluate_response_relevancy(self, user_input: str, response: str, retrieved_contexts: List[str]):
@@ -850,6 +943,7 @@ class EvaluatorService:
 async def main():
     service = ChatService()
     service2 = BrokerRepository()
+    service3 = ChatDatabaseService()
     # video_id = "zwb6lqhpzl"
     print ("Evaluation stating.....")
 
@@ -860,25 +954,24 @@ async def main():
     # await evaluator_service.get_dataset_naive(video_id=video_id)
     # await evaluator_service.get_dataset_clean_naive(video_id=video_id)
 
-    evaluator_service = EvaluatorService(chat_service=service, broker_service=service2)
+    evaluator_service = EvaluatorService(chat_service=service, broker_service=service2, chat_db=service3)
     # await evaluator_service.get_dataset_t(video_id="zwb6lqhpzl") #this is the non temporal pipeline that i used!
     # await evaluator_service.get_dataset_pre_t(video_id=video_id)
     # await evaluator_service.get_dataset_naive_t(video_id=video_id)
     # await evaluator_service.get_dataset_clean_naive_t(video_id=video_id)
 
     
-    #nicole temporal and for generic
-    # await evaluator_service.get_dataset_t_with_llm(video_id="zwb6lqhpzl")
-    
-    #still building this 
-    # await evaluator_service.get_dataset_preQRAG_llm(course_code="SC1177")  # Replace with your course code
-    
-    #mutlivideo(run thru all no question checker)
-    video_mapping_result = await evaluator_service.video_mapping(course_code="SC1177")
-    video_ids = list(video_mapping_result.get("video_map", {}).values())
-    print(f"Extracted video IDs: {video_ids}")
-    await evaluator_service.get_dataset_mutlivid(video_ids=video_ids)
+    #mutlivideo(run thru all no question checker) RAGV3 original
+    # await evaluator_service.Ragv3_only(video_ids=video_ids)
 
+    #nicole temporal and for generic only 
+    # await evaluator_service.Ragv3_Temporal_only(course_code="SC1177")
+
+    #PreQRAG only 
+    # await evaluator_service.Ragv3_preQRAG_llm(course_code="SC1177")  # Replace with your course code
+
+    #PreQRAG + temporal
+    await evaluator_service.Ragv3_preQRAG_temporal(course_code="SC1177")  # Replace with your course code
 
 
 # Run the main function
