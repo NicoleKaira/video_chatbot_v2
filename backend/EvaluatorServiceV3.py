@@ -88,57 +88,144 @@ class EvaluatorService:
         # self.question_for_multivideos = [
         #     "According to the lecturer in Sc1007_videolecture, is the lab graded, and how is attendance handled?",
         #     "In Sc1007_videolecture, what penalty does the lecturer state for plagiarism in assignments?",
-        #     "What programming language does the module use throughout, including the second half mentioned in Sc1007_videolecture?",
         #     "List the three essential characteristics of an algorithm mentioned by the lecturer in Sc1007_videolecture.",
         #     "When is the combined lab test and quiz scheduled, and what does the quiz cover mentioned in Sc1007_videolecture?",
         #     "In the factorial example with a while loop mentioned in Lecture2_Sc1007, how does computational time scale with N?",
         #     "In Lecture2_Sc1007, for a nested loop that sums all elements in an NxN matrix, what is the time complexity?",
         #     "What cases should be considered when analyzing selection structures (if/else) for time complexity mentioned in Lecture2_Sc1007?",
         #     "In Lecture2_Sc1007, what is the recurrence for counting comparisons in a simple recursive array scan, and what does it solve to?",
-        #     "In a binary-tree traversal that makes two recursive calls per node, how does the number of operations grow with the number of levels K, mentioned in Lecture2_Sc1007?"
+        #     "In a binary-tree traversal that makes two recursive calls per node, how does the number of operations grow with the number of levels K, mentioned in Lecture2_Sc1007?",
+        #     "In Lecture3_Sc1007, what topics does the lecturer plan to cover after analysis of algorithms?",
+
+        #     "What does the lecturer emphasize as more important than exact running time when analyzing algorithms in Lecture3_Sc1007?",
+        #     "What example mentioned in Lecture3_Sc1007 is used to explain why factorial time complexity is impractical?",
+        #     "In Lecture3_Sc1007, why are constants ignored in asymptotic analysis?",
+        #     "What are the three asymptotic notations introduced by the lecturer in Lecture3_Sc1007?",
+        #     "What is the best-case time complexity of sequential search in a linked list in Lecture3_Sc1007?",
+        #     "In Lecture3_Sc1007, what is the worst-case time complexity of sequential search?",
+        #     "In Lecture3_Sc1007, what is the average-case complexity of sequential search?",
+        #     "What improvement does the lecturer suggest over binary search for faster lookups in Lecture4_Sc1007?",
+        #     "In Lecture4_Sc1007, what trade-off is mentioned when using hash tables?",
+        #     "In Lecture4_Sc1007, what is hashing defined as?",
+
+        #     "What problem arises when two values map to the same slot in a hash table discussed in Lecture4_Sc1007?",
+        #     "In Lecture4_Sc1007, why is it recommended to make the table size a prime number?",
+        #     "Mentioned in Lecture4_Sc1007, what collision resolution technique stores multiple keys in a linked list at the same slot?",
+        #     "In Lecture4_Sc1007, what is linear probing in open addressing?",
+        #     "What is secondary clustering in quadratic probing talked about in Lecture4_Sc1007?",
+        #     "In Lecture4_Sc1007, why is double hashing preferred over quadratic probing?",
+        #     "In Lecture5_Sc1007, what topics are covered in this lecture?",
+        #     "In Lecture5_Sc1007, when will the lecturer release the assignment?",
+        #     "In Lecture5_Sc1007, what two components make up a graph?",
+        #     "In Lecture5_Sc1007, what makes a tree a special kind of graph?"
         # ]
 
 
         # self.answer_for_multivideos = [
         #     "The lab itself is not graded, but attendance is still taken. Skipping labs may hurt performance in lab tests. (Reference: Sc1007_videolecture)",
         #     "Assignments are checked for plagiarism; getting caught results in zero marks for that assignment. (Reference: Sc1007_videolecture)",
-        #     "C programming. (Reference: Sc1007_videolecture)",
         #     "Correctness, precision (unambiguous steps), and finiteness (must terminate in finite time). (Reference: Sc1007_videolecture)",
         #     "Week 14 (April 20): a combined two-hour lab test and quiz. The MCQ tests concepts from Weeks 1-13, including analysis of algorithms. (Reference: Sc1007_videolecture)",
         #     "It scales linearly with N; time complexity is linear (O(N)). (Reference: Lecture2_Sc1007)",
         #     "Quadratic time, O(N^2); more generally MxN operations for an MxN matrix. (Reference: Lecture2_Sc1007)",
         #     "Best case, worst case, and average case (with probabilities). (Reference: Lecture2_Sc1007)",
         #     "W(N) = 1 + W(N-1) with base W(1)=1; it solves to linear growth, i.e., N total comparisons. (Reference: Lecture2_Sc1007)",
-        #     "It follows a geometric series (1 + 2 + 4 + … + 2^(K-1)), i.e., exponential growth in K. (Reference: Lecture2_Sc1007)"
+        #     "It follows a geometric series (1 + 2 + 4 + ... + 2^(K-1)), i.e., exponential growth in K. (Reference: Lecture2_Sc1007)",
+        #     "Sequential search, binary search, and hash tables. (mentioned in 0:03:12)",
+
+        #     "The order of growth (number of operations). (mentioned in 0:06:27)",
+        #     "An algorithm with N! operations grows exponentially fast, making it infeasible. (mentioned in 0:07:07)",
+        #     "Because for large input sizes, constants (like +100) become negligible compared to growth rate. (mentioned in 0:08:44)",
+        #     "Big O, Big Omega, and Big Theta. (mentioned in 0:11:31)",
+        #     "Constant time, Big Theta(1). (mentioned in 0:40:07)",
+        #     "Linear time, Big Theta(N). (mentioned in 0:42:03)",
+        #     "Linear time, Big Theta(N). (mentioned in 0:46:32)",
+        #     "Using a hashtable to achieve constant time search. (mentioned in 0:08:15)",
+        #     "Sacrificing space to achieve faster (constant time) search. (mentioned in 0:09:00)",
+        #     "Mapping data of arbitrary size to a fixed size array using a hash function. (mentioned in 0:13:20)",
+            
+        #     "A collision. (mentioned in 0:14:30)",
+        #     "To avoid clustering when using modular arithmetic. (mentioned in 0:27:13)",
+        #     "Closed addressing (separate chaining). (mentioned in 0:31:01)",
+        #     "Checking the next slot sequentially when a collision occurs. (mentioned in 0:52:01)",
+        #     "Keys with the same initial hash follow the same probe sequence, causing clustering. (mentioned in 0:58:25)",
+        #     "It varies the probe sequence per key, reducing clustering. (mentioned in 1:02:15)",
+        #     "Graph representation, specifically adjacency matrix and adjacency list. (mentioned in 0:09:48)",
+        #     "The assignment will be released this Wednesday or next Monday, and students should start practicing early. The assignment link is valid for two weeks. (mentioned in 0:10:00)",
+        #     "Vertices and edges. (mentioned in 0:10:03)",
+        #     "It has no cycles. (mentioned in 0:15:00)"
         # ]
 
 #####################part2 - Multi docs 
-        # self.question_for_multivideos = [
-        #     "Across the lectures, which topics are planned after the analysis of algorithms and when might hash tables be covered?",
-        #     "Which lecture previews asymptotic notation and which one defines Big O, Big Ω, and Big Θ in detail?",
-        #     "Summarize how recursion impacts time and space across the lectures using examples given.",
-        #     "From the lectures, what is the difference between an algorithm and a program, and how is efficiency evaluated?",
-        #     "Combine the examples: which method is most efficient for summing 1..N, and how is this justified by the complexity principles?",
-        #     "What searching approaches are mentioned and how do their time complexities differ?",
-        #     "Considering the course logistics from the lectures, what assessments contribute to the final grade?",
-        #     "Using all lectures, explain why constants are ignored in asymptotic analysis and give an example where N^2 + 100 and N^2 are treated the same.",
-        #     "Across the lectures, which graph-related topics are planned and what real-world path problem is used as an example?",
-        #     "What guidance is given about coding vs. concepts across the lectures, and how should students prepare?"
-        # ]
+        self.question_for_multivideos = [
+            "Across the two lectures Sc1007_Videolecture and Lecture2_videolecture, which topics are planned after the analysis of algorithms and when might hash tables be covered?",
+            "Which lecture between Sc1007_Videolecture and Lecture2_videolecture, previews asymptotic notation and which one defines Big O, Big Omega, and Big Theta in detail?",
+            "Summarize how recursion impacts time and space across the Sc1007_Videolecture and Lecture2_videolecture lectures using examples given.",
+            "From both lectures Sc1007_Videolecture and Lecture2_videolecture, what is the difference between an algorithm and a program, and how is efficiency evaluated?",
+            "Combine the examples: which method is most efficient for summing 1 to N, and how is this justified by the complexity principles in both Sc1007_Videolecture and Lecture2_videolecture lectures.",
+            "What searching approaches are mentioned in Sc1007_Videolecture and Lecture2_videolecture, and how do their time complexities differ?",
+            "Considering the course logistics from Sc1007_Videolecture and Lecture2_videolecture lectures, what assessments contribute to the final grade?",
+            "Using both lectures Sc1007_Videolecture and Lecture2_videolecture, explain why constants are ignored in asymptotic analysis and give an example where N^2 + 100 and N^2 are treated the same.",
+            "Across the Sc1007_Videolecture and Lecture2_videolecture videos, which graph-related topics are planned and what real-world path problem is used as an example?",
+            "What guidance is given about coding vs. concepts across the Sc1007_Videolecture and Lecture2_videolecture videos, and how should students prepare?",
 
-        # self.answer_for_multivideos= [
-        #     "Topics after analysis include hash tables, graph problems (BFS, DFS), backtracking, permutations, dynamic programming, matching, and later sorting/string processing. Hash tables are planned in the second half of the module and targeted around Week 8 to 9; Lecture 3 notes hash tables right after sequential/binary search.",
-        #     "Lecture 1 previews asymptotic analysis (time/space, Big-O). Lecture 3 defines asymptotic notation rigorously—Big O (upper bound), Big Ω (lower bound), and Big Θ (tight bound), with formal definitions and the limit method.",
-        #     "Recursive Fibonacci leads to exponential time (~2^N) and deeper call stacks; iterative Fibonacci is linear; a more advanced method achieves logarithmic time. Summing 1..N recursively is worse than the constant-time arithmetic formula. Memoization reduces time but uses extra space.",
-        #     "Algorithm: a finite, precise, unambiguous procedure independent of code. Program: an implementation of an algorithm in a language (e.g., C). Efficiency is evaluated by order of growth for time and space (best/worst/average cases) rather than exact runtimes.",
-        #     "Using the arithmetic series formula N(N+1)/2 is most efficient: O(1). A for-loop is O(N) and recursion adds overhead without benefit. By asymptotic principles, constant-time work is preferred as N grows.",
-        #     "Sequential/linear search: Θ(N). Binary search (on sorted data): Θ(log N). Hash table lookup: Θ(1) average via hashing and direct indexing (with a space–time trade-off).",
-        #     "Assessments: Assignments 40% (20% Dr Owen + 20% this lecturer), Lab Test 1 (Week ~1) 20%, Lab Test 2 + Quiz together in Week 14: 40% (20% lab + 20% quiz). Labs themselves are ungraded; attendance is taken.",
-        #     "Asymptotic analysis ignores constant terms and factors because we care about growth rate. Example: N^2 + 100 and N^2 are both Θ(N^2) for large N; the +100 is negligible.",
-        #     "Planned graph topics: BFS, DFS, backtracking, matching; applications include shortest-path search (e.g., Google Maps) and traveling salesman. A real-world path example is finding the shortest route from source to destination on a road network.",
-        #     "Lectures and tutorials emphasize concepts; code is not provided in notes. Students should practice coding in labs/at home to realize the algorithms. Reading solutions is discouraged—implement and test yourself to learn."
+            "Which graph-related problems are planned in Sc1007_Videolecture, and what real-world application is used in Lecture5_videolecture?",
+            "Which lecture between Sc1007_Videolecture and Lecture3_videolecture previews asymptotic notation, and which defines Big O, Big Omega, and Big Theta in detail?",
+            "How is search complexity contrasted in Lecture3_videolecture sequential search and Lecture4_videolecture binary search?",
+            "What assessments are mentioned in Sc1007_Videolecture and Lecture2_videolecture videos and how do they count toward the final grade?",
+            "Why are constants ignored in asymptotic analysis, and what example is provided across the Sc1007_Videolecture and Lecture3_videolecture videos?",
+            "How are linked lists used differently in Lecture4_videolecture hash tables and Lecture5_videolecture adjacency lists?",
+            "How is efficiency of summing 1 to N compared in both Sc1007_Videolecture and Lecture3_videolecture?",
+            "What graph representations are mentioned across Lecture3_videolecture and Lecture5_videolecture?",
+            "What real-world applications of graphs are given across Sc1007_videolecture and Lecture5_videolecture?",
+            "What is the average-case complexity of search mentioned in Lecture3_videolecture and Lecture4_videolecture?",
+            
+            "What guidance is given about tutorials, labs, and coding across Sc1007_Videolecture and Lecture2_videolecture?",
+            "How is graph connectivity defined in Lecture5_videolecture compared to complexity bounds in Lecture3_videolecture?",
+            "How do adjacency lists relate to hash tables as explained across Lecture4_videolecture and Lecture5_videolecture?",
+            "What are the main considerations when analyzing if/else in Lecture2_videolecture versus collisions in Lecture4_videolecture?",
+            "Which parts of the module are described as concept-heavy, and how do labs balance this across Sc1007_Videolecture and Lecture2_videolecture?",
+            "How are nested loops explained in Lecture2_videolecture and Lecture3_videolecture, and what time complexity do they lead to?",
+            "What is the difference between an algorithm and a program, and how is efficiency evaluated across Sc1007_Videolecture and Lecture2_videolecture?",
+            "In Lecture2_videolecture and Lecture4_videolecture, what considerations are made for selection structures and hash table collisions?",
+            "How does load factor in Lecture4_videolecture relate to loop growth in Lecture2_videolecture?",
+            "What distinguishes trees from general graphs across the lectures Lecture2_videolecture and Lecture5_videolecture?"
+        ]
 
-        # ]
+        self.answer_for_multivideos= [
+            "Both lectures mention moving on to hash tables and graph problems. Lecture2_Sc1007 notes hash tables will be covered on Monday (or Wednesday) depending on time. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Sc1007_videolecture previews that asymptotic notation (e.g., Big O) will be covered; Lecture2_Sc1007 defines Big O, Big Omega (Omega), and Big Theta (Theta) and explains ignoring constants and focusing on growth order. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Sc1007_videolecture uses Fibonacci to show naive recursion can be exponential in time; Lecture2_Sc1007 shows factorial recursion is linear time but uses extra stack memory compared to iteration. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Sc1007_videolecture explains an algorithm is a well-defined procedure while a program is its implementation; Lecture2_Sc1007 explains efficiency is evaluated via time/space complexity and asymptotic growth, not raw runtime constants. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Using the arithmetic series formula N/2*(1+N) is most efficient (constant-time operations), justified by Lecture2_Sc1007's principle of focusing on lowest order of growth and ignoring constants. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Linear search (Sc1007_videolecture) is O(N); hash-based lookup (Lectures 1 & 2 plan) targets O(1) average time with extra space. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Assignments (two parts totaling 40%), two lab tests (20percent respectively), and a final quiz (20%), as outlined in Sc1007_videolecture; Lecture2_Sc1007 reiterates upcoming topics tied to assessments release (e.g., after hash tables). (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Lecture2_Sc1007 explicitly shows that as N grows large, additive constants (like +100) and constant factors have negligible impact on growth, so N^2 + 100 and N^2 are both Theta(N^2). (Reference: Lecture2_Sc1007 (previewed in Sc1007_videolecture))",
+            "Planned topics include BFS, DFS, backtracking, permutations, dynamic programming, and matching; Google Maps shortest path is given as a real-world example (Sc1007_videolecture). (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            "Lectures focus on concepts; implementation practice is expected in labs/assignments. Students should practice coding themselves rather than relying on solutions. (Reference: Sc1007_videolecture + Lecture2_Sc1007)",
+            
+            "In Sc1007_videolecture, the lecturer planned to cover graph-related problems such as BFS, DFS, backtracking, and dynamic programming (mentioned in 0:04:26), while in Lecture5_videolecture a real-world MRT/Google Maps shortest path example was discussed (mentioned in 0:27:01).",
+            "In Sc1007_videolecture, the lecturer previewed asymptotic notation (mentioned in 0:26:40), while in Lecture3_videolecture the lecturer defined Big O, Big Omega, and Big Theta formally (mentioned in 0:11:31).",
+            "In Lecture3_videolecture, the lecturer explained that sequential search takes Theta(N) in the worst case (mentioned in 0:42:03), whereas in Lecture4_videolecture binary search was shown to achieve Theta(log N) (mentioned in 0:06:06).",
+            "In Sc1007_videolecture, the lecturer explained that assignments contribute 40%, lab tests contribute 20percent respectively, and the quiz contributes 20% (mentioned in 0:07:54), while in Lecture2_videolecture the lecturer also discussed lab test and quiz details (mentioned in 0:03:45).",
+            "In Sc1007_videolecture, the lecturer explained that constants are negligible for large inputs (mentioned in 0:26:26), and in Lecture3_videolecture the lecturer gave the example that N^2 + 100 is treated the same as N^2 (mentioned in 0:08:44).",
+            "In Lecture4_videolecture, the lecturer explained that closed addressing uses linked lists to handle collisions (mentioned in 0:31:01), whereas in Lecture5_videolecture adjacency lists use linked lists to store neighboring vertices (mentioned in 0:37:14).",
+            "In Sc1007_videolecture, the lecturer explained that using the formula N(N+1)/2 provides constant time efficiency (mentioned in 0:24:34), while in Lecture3_videolecture growth rate analysis also showed that the formula is the most efficient method (mentioned in 0:06:45).",
+            "In Lecture3_videolecture, the lecturer introduced graphs conceptually (mentioned in 0:33:38), and in Lecture5_videolecture the lecturer explained adjacency matrices and adjacency lists in detail (mentioned in 0:30:01).",
+            "In Sc1007_videolecture, the lecturer gave examples such as the traveling salesman problem and cryptography (mentioned in 0:37:32), while in Lecture5_videolecture examples included MRT shortest path problems and computer networks (mentioned in 0:27:01).",
+            "In Lecture3_videolecture, the lecturer explained that sequential search has an average-case complexity of Theta(N) (mentioned in 0:46:32), while in Lecture4_videolecture the lecturer explained that hash table search averages Theta(1) when the load factor is constant (mentioned in 0:46:41).",
+            
+            "In Sc1007_videolecture, the lecturer explained that tutorials focus on concepts while labs focus on practice (mentioned in 0:08:50), and in Lecture2_videolecture the lecturer explained that complexity analysis is taught in lecture but coding is applied in labs (mentioned in 0:03:28).",
+            "In Lecture5_videolecture, the lecturer explained that a graph is connected if a path exists between any two vertices (mentioned in 0:21:53), while in Lecture3_videolecture the lecturer explained how algorithms are bounded using Big O, Big Omega, and Big Theta (mentioned in 0:11:31).",
+            "In Lecture4_videolecture, Closed addressing uses linked lists (mentioned in 0:31:01), whereas in Lecture5_videolecture, Adjacency list uses linked lists to store neighbors (mentioned in 0:37:14).",
+            "In Lecture2_videolecture, it mentions the best and worst cases in if/else (mentioned in 0:18:20), while in Lecture4_videolecture, it mentioned collisions and clustering (mentioned in 0:27:13).",
+            "In Sc1007_videolecture, he mentioned tutorials focus on concepts, labs on coding practice (mentioned in 0:08:50). In Lecture2_videolecture, he mentioned complexity analysis is theory, coding tested in labs (mentioned in 0:03:28).",
+            "In Lecture2_videolecture, summing NxN matrix gives O(N^2) (mentioned in 0:16:02). In Lecture3_videolecture, general polynomial complexities like O(N^2) (mentioned in 0:07:00).",
+            "In Sc1007_videolecture, the lecturer explained that an algorithm is a procedure while a program is its implementation (mentioned in 0:21:07), and in Lecture2_videolecture efficiency was evaluated using time and space complexity (mentioned in 0:07:20).",
+            "In Lecture2_videolecture, the lecturer emphasized analyzing best and worst cases for if/else statements (mentioned in 0:18:20), while in Lecture4_videolecture the lecturer explained how collisions and clustering issues affect hash tables (mentioned in 0:27:13).",
+            "In Lecture4_videolecture, the lecturer explained that the load factor affects the efficiency of hash tables (mentioned in 0:20:30), while in Lecture2_videolecture the lecturer described how loop complexity grows with the input size N (mentioned in 0:06:27).",
+            "In Lecture2_videolecture, the lecturer explained recursive binary tree traversal (mentioned in 0:20:01), while in Lecture5_videolecture the lecturer emphasized that trees are acyclic graphs (mentioned in 0:15:00)."
+        ]
        
 #####################part3 - General questions
         # self.question_for_multivideos = [
@@ -159,12 +246,12 @@ class EvaluatorService:
         #     "To compare potential solutions by their efficiency and scalability (time and space) with respect to input size before coding. (Reference: Either)",
         #     "Time complexity measures how the number of operations grows with input size; space complexity measures memory/storage usage growth with input size. (Reference: Either)",
         #     "Wall-clock time depends on hardware, whereas counting primitive operations abstracts away machine differences and focuses on algorithmic growth. (Reference: Either)",
-        #     "Big O (upper bound), Big Ω (lower bound), Big Θ (tight bound/same growth rate). (Reference: Either (defined in Lecture2_Sc1007))",
+        #     "Big O (upper bound), Big Omega (lower bound), Big Theta (tight bound/same growth rate). (Reference: Either (defined in Lecture2_Sc1007))",
         #     "Binary search or balanced-tree operations take O(log N), requiring far fewer steps than O(N) as N grows, thus much faster for large inputs. (Reference: Either (implied by both; detailed in Lecture2_Sc1007))",
         #     "It might require too much memory (space complexity) or not fit device constraints, necessitating a time-space trade-off. (Reference: Either)",
         #     "Order of growth describes how runtime/memory scales with problem size; constants/lower-order terms are negligible for large N. (Reference: Either (emphasized in Lecture2_Sc1007))",
-        #     "A binary-tree traversal with two recursive calls per node yields 1 + 2 + 4 + … + 2^(K-1). (Reference: Either (seen in Lecture2_Sc1007))",
-        #     "Searching, graph problems, sorting, string processing, combinatorial, computational geometry, and optimization—core to many CS applications. (Reference: Either (catalogued in Sc1007_videolecture))",
+        #     "A binary-tree traversal with two recursive calls per node yields 1 + 2 + 4 + ... + 2^(K-1). (Reference: Either (seen in Lecture2_Sc1007))",
+        #     "Searching, graph problems, sorting, string processing, combinatorial, computational geometry, and optimization--core to many CS applications. (Reference: Either (catalogued in Sc1007_videolecture))",
         #     "Naive recursion recomputes overlapping subproblems, leading to exponential time, whereas iteration uses linear time. (Reference: Either (example in Sc1007_videolecture, principles echoed in Lecture2_Sc1007))"
         # ]
 
@@ -200,8 +287,8 @@ class EvaluatorService:
 
 ################################################################################################
     ##### PART1 #####   temporal
-        self.question_for_multivideos = [
-            "In Lecture1 the lecturer introduced analysis of algorithms, while in Lecture3 more detail was given, what topics followed after this analysis in both lectures?"]#,
+        # self.question_for_multivideos = [
+        #     "In Lecture1 the lecturer introduced analysis of algorithms, while in Lecture3 more detail was given, what topics followed after this analysis in both lectures?"]#,
         #     "What is mentioned at 33 minutes of Sc1007_videolecture?",
         #     "What was discussed at 27:00 in Sc1007_videolecture?",
         #     "When was the difference between algorithm and program discussed in Sc1007_videolecture?",
@@ -225,8 +312,8 @@ class EvaluatorService:
         # ]
 
 
-        self.answer_for_multivideos = [
-            "Lecture1: Hash tables and graph problems. Lecture3: Sequential search, binary search, and hash tables."]#,
+        # self.answer_for_multivideos = [
+            # "Lecture1: Hash tables and graph problems. Lecture3: Sequential search, binary search, and hash tables.",
         #     "At the 33-minute mark, the lecturer mentioned that the module will mainly cover problem types such as searching, graph problems, and combinatorial problems involving permutations.",
         #     "The lecturer discussed the Fibonacci sequence, using it as an example to illustrate algorithmic thinking and recursive problem-solving.",
         #     "The difference between an algorithm and a program was discussed around 21:00.",
@@ -330,7 +417,7 @@ class EvaluatorService:
             results.append(result)
             print("Iteration " + str(i+1) + " took " + str(time_taken) + " seconds")
 
-        with open("MultivideoV4.0_evaluation_results.json", mode='w', newline='') as jsonfile:
+        with open("Rag3only_results.json", mode='w', newline='') as jsonfile:
             json.dump(results, jsonfile, indent=4)
         
         return
@@ -549,11 +636,11 @@ class EvaluatorService:
             
             
 
-        with open("evaluation_results_t_with_llm.json", mode='w', newline='') as jsonfile:
+        with open("Ragv3_Temporal_only_results.json", mode='w', newline='') as jsonfile:
             json.dump(results, jsonfile, indent=4)
 
     #Nicole^
-    async def Ragv3_preQRAG_llm(self, course_code: str) -> None:
+    async def Ragv3_preQRAG_only(self, course_code: str) -> None:
         """
         Evaluate multi-document questions using PreQRAG routing and LLM-based retrieval.
         
@@ -657,7 +744,7 @@ class EvaluatorService:
         
         # Save all results to JSON file
         try:
-            with open("evaluation_results_multidocs.json", mode='w', newline='') as jsonfile:
+            with open("Ragv3_PreQRAG_only_results.json", mode='w', newline='') as jsonfile:
                 json.dump(results, jsonfile, indent=4)
         except Exception as e:
             print(f"Error saving results to file: {e}")
@@ -711,7 +798,7 @@ class EvaluatorService:
             
             try:
                 # Route question using PreQRAG
-                json_results_llm = await self.chat_service.route_pre_qrag(
+                json_results_llm = await self.chat_service.route_pre_qrag_temporal(
                     user_query=question, 
                     video_map=video_mapping
                 )
@@ -769,7 +856,7 @@ class EvaluatorService:
         
         # Save all results to JSON file
         try:
-            with open("evaluation_results_multidocs.json", mode='w', newline='') as jsonfile:
+            with open("Ragv3_PreQRAG_Temporal_only_results.json", mode='w', newline='') as jsonfile:
                 json.dump(results, jsonfile, indent=4)
         except Exception as e:
             print(f"Error saving results to file: {e}")
@@ -962,13 +1049,13 @@ async def main():
 
     
     #mutlivideo(run thru all no question checker) RAGV3 original
-    # await evaluator_service.Ragv3_only(video_ids=video_ids)
+    # await evaluator_service.Ragv3_only(course_code="SC1177")
 
     #nicole temporal and for generic only 
     # await evaluator_service.Ragv3_Temporal_only(course_code="SC1177")
 
     #PreQRAG only 
-    # await evaluator_service.Ragv3_preQRAG_llm(course_code="SC1177")  # Replace with your course code
+    # await evaluator_service.Ragv3_preQRAG_only(course_code="SC1177")  # Replace with your course code
 
     #PreQRAG + temporal
     await evaluator_service.Ragv3_preQRAG_temporal(course_code="SC1177")  # Replace with your course code

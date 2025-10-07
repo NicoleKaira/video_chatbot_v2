@@ -2,7 +2,7 @@
 
 import React, {useContext} from "react";
 
-import {FileVideo , BookCheck, Upload} from "lucide-react"
+import {FileVideo , BookCheck, Upload, BotMessageSquare} from "lucide-react"
 
 import { ThumbnailSkeleton } from "@/components/thumbnail";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +26,11 @@ const items = [
     title: "Upload",
     url: "/manage/upload",
     icon: Upload ,
+  },
+  {
+    title: "Chat",
+    url: "/manage/chat",
+    icon: BotMessageSquare
   }
 ]
 

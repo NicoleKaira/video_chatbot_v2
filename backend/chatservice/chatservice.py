@@ -1,4 +1,5 @@
 import os
+import concurrent.futures
 import json #nicole added
 
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ from chatservice.repository import ChatDatabaseService
 from chatservice.model import ChatHistory, LLMIsTemporalResponse
 from chatservice.utils import weighted_reciprocal_rank
 from loggingConfig import logger
-from utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds, get_prompt_preQrag
+from utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds, get_prompt_preQrag, get_prompt_preQrag_temporal
 
 load_dotenv()
 
@@ -329,36 +330,86 @@ class ChatService:
             #         {"video_id": None, "question": user_query}
             #     ]
             # }
+
+    async def route_pre_qrag_temporal(self, user_query: str, video_map: list) -> dict:
+        """
+        Call LLM with the PRE-QRAG routing prompt, injecting the user query and the video map.
+
+        Args:
+            user_query (str): The user's natural language question.
+            video_map (list): Array of objects like {"name": str, "video_id": str}.
+
+        Returns:
+            dict: Parsed JSON with routing_type, video_ids, temporal signals, and query_variants.
+        """
+        try:
+            prompt = PromptTemplate(
+                template=get_prompt_preQrag_temporal(),
+                input_variables=["user_query", "video_map"]
+            )
+
+            # Ensure video_map is injected as JSON text to the prompt
+            video_map_json = json.dumps(video_map, ensure_ascii=False)
+
+            chain = prompt | self.chat_model
+            result = await chain.ainvoke({
+                "user_query": user_query,
+                "video_map": video_map_json
+            })
+
+            content = result.content if hasattr(result, "content") else str(result)
+            return json.loads(content)
+        except Exception as e:
+            print(f"[route_pre_qrag] Error: {e}")
+            # Return a minimal fallback structure to avoid breaking callers
+            # return {
+            #     "routing_type": "GENERAL_KB",
+            #     "user_query": user_query,
+            #     "video_ids": [],
+            #     "is_temporal": False,
+            #     "temporal_signals": {
+            #         "explicit_timestamps": [],
+            #         "time_expressions": [],
+            #         "ordinal_events": [],
+            #         "relative_dates": []
+            #     },
+            #     "query_variants": [
+            #         {"video_id": None, "question": user_query}
+            #     ]
+            # }
+
+    
         
     def retrival_singledocs_multidocs(self, queryVariants, top_n: int=3):
         
         all_retrieval_results = []
         all_fused_documents = []
 
-        for i in range(len(queryVariants)):
-            variant = queryVariants[i]
-
+        def process_variant(index_and_variant):
+            i, variant = index_and_variant
             vid_list = variant.get('video_ids')
             sub_query = variant.get('question')
-                      
+
             docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
             docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
-            # logger.info(list(docs_semantic))
-            # logger.info(list(docs_text))
             doc_lists = [docs_semantic, docs_text]
-            # Enforce that retrieved docs are the same form for each list in retriever_docs
             for j in range(len(doc_lists)):
                 doc_lists[j] = [
                     {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
-                    for doc in doc_lists[j]]
-            fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
-            retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
-            print(f"Query variant {i}: {len(retrieval_results)} chunks")
+                    for doc in doc_lists[j]
+                ]
+            fused_documents_local = weighted_reciprocal_rank(doc_lists)[:top_n]
+            retrieval_results_local = [Document(page_content=doc['text']) for doc in fused_documents_local]
+            print(f"Query variant {i}: {len(retrieval_results_local)} chunks")
+            return retrieval_results_local, fused_documents_local
 
-            # Append results from this query variant
-            all_retrieval_results.extend(retrieval_results)
-            all_fused_documents.extend(fused_documents)
-        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(queryVariants) or 1) as executor:
+            futures = [executor.submit(process_variant, (i, queryVariants[i])) for i in range(len(queryVariants))]
+            for future in concurrent.futures.as_completed(futures):
+                retrieval_results_local, fused_documents_local = future.result()
+                all_retrieval_results.extend(retrieval_results_local)
+                all_fused_documents.extend(fused_documents_local)
+
         return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
 
 
@@ -367,38 +418,45 @@ class ChatService:
             all_retrieval_results = []
             all_fused_documents = []
 
-            
-            for i in range(len(queryVariants)):
-                variant = queryVariants[i]
-
+            def process_variant(index_and_variant):
+                i, variant = index_and_variant
                 vid_list = variant.get('video_ids')
                 sub_query = variant.get('question')
                 temporal_signal  = variant.get('temporal_signal')
 
+                retrieval_results_local = []
+                fused_documents_local = []
+
                 if temporal_signal:
                     docs_temporal, temporal_fused_docs = self.chat_db.retrieve_chunks_by_timestamp(vid_list, temporal_signal)
                     print(f"Query variant {i}: {len(docs_temporal)} chunks")
-                    all_retrieval_results.extend(docs_temporal)
-                    all_fused_documents.extend(temporal_fused_docs)
-                
+                    retrieval_results_local.extend(docs_temporal)
+                    fused_documents_local.extend(temporal_fused_docs)
+
                 docs_semantic = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
                 docs_text = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
-                # logger.info(list(docs_semantic))
-                # logger.info(list(docs_text))
                 doc_lists = [docs_semantic, docs_text]
-                # Enforce that retrieved docs are the same form for each list in retriever_docs
                 for j in range(len(doc_lists)):
                     doc_lists[j] = [
                         {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
-                        for doc in doc_lists[j]]
-                fused_documents = weighted_reciprocal_rank(doc_lists)[:top_n]
-                retrieval_results = [Document(page_content=doc['text']) for doc in fused_documents]
-                print(f"Query variant {i}: {len(retrieval_results)} chunks")
+                        for doc in doc_lists[j]
+                    ]
+                fused_documents_rerank = weighted_reciprocal_rank(doc_lists)[:top_n]
+                retrieval_results_rerank = [Document(page_content=doc['text']) for doc in fused_documents_rerank]
+                print(f"Query variant {i}: {len(retrieval_results_rerank)} chunks")
 
-                # Append results from this query variant
-                all_retrieval_results.extend(retrieval_results)
-                all_fused_documents.extend(fused_documents)
-            
+                retrieval_results_local.extend(retrieval_results_rerank)
+                fused_documents_local.extend(fused_documents_rerank)
+
+                return retrieval_results_local, fused_documents_local
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=len(queryVariants) or 1) as executor:
+                futures = [executor.submit(process_variant, (i, queryVariants[i])) for i in range(len(queryVariants))]
+                for future in concurrent.futures.as_completed(futures):
+                    retrieval_results_local, fused_documents_local = future.result()
+                    all_retrieval_results.extend(retrieval_results_local)
+                    all_fused_documents.extend(fused_documents_local)
+
             return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
 
     

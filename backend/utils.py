@@ -259,7 +259,7 @@ Question: "{question}"
 
 
 # preQRAG new
-def get_prompt_preQrag():
+def get_prompt_preQrag_temporal():
     return """
     SYSTEM ROLE:
     You are a lightweight PRE-QRAG router and question rewriter for a lecture-video RAG system.
@@ -282,12 +282,12 @@ def get_prompt_preQrag():
     - SINGLE_DOC: produce **exactly 2** variants:
     1) Sparse-optimized (keyword-heavy).  2) Dense-optimized (semantic).
     Each variant's "video_ids" = [that single mapped id].
-    - MULTI_DOC: produce **exactly 2** decomposed sub-questions.
-    Each variant's "video_ids" = all related ids; if none specified, use **top-level video_ids** (i.e., all videos).
-    - For each variant, set "temporal_signal" as: Time range -> ["start_time", "end_time"] (HH:MM:SS). Single time point -> ["time"]. No timing -> [].   
-    - Keep each question ≤ 18 words; no duplicates; no invented facts.
+     - MULTI_DOC: produce **exactly 2** decomposed into distinct sub-questions.
+    Each sub-question should target a distinct aspect of the query, not duplicates.
+    Each variant's "video_ids" = all related ids; if none specified, use **top-level video_ids** (i.e., all videos).  
 
     CONSTRAINTS
+    - Do **not** invent facts or lecture names. Queries must stay grounded in the original question.
     - "video_ids" must be valid IDs from video_map.
     - Top-level "video_ids" must equal the union (deduped, order-preserving) of all IDs appearing in query_variants[*].video_ids.
     - Return **valid JSON only** (no comments/markdown/trailing commas).
@@ -304,6 +304,53 @@ def get_prompt_preQrag():
     }}
     
     """
+
+def get_prompt_preQrag():
+    return """
+    SYSTEM ROLE:
+    You are a lightweight PRE-QRAG router and question rewriter for a lecture-video RAG system.
+
+    INPUTS:
+    - user_query = {user_query}
+    - video_map  = {video_map}   # array of {{"name": "...", "video_id": "..."}}
+
+    STEP 1 — CLASSIFY
+    Routing_type:
+    - "SINGLE_DOC": answerable from one specific lecture.
+    - "MULTI_DOC": needs ≥2 lectures. If unsure OR no lecture explicitly mentioned, choose "MULTI_DOC".
+
+    STEP 2 — MAP LECTURES TO video_id(s)
+    Resolve case-insensitive names/aliases (and "lecture N" -> Nth entry in video_map) to video_id(s).
+    - If no lecture explicitly named → set top-level video_ids to **all** IDs in video_map (order-preserving).
+    - SINGLE_DOC → exactly 1 id. MULTI_DOC → ≥1 ids (deduped, order-preserving).
+
+    STEP 3 — QUESTION REWRITING
+    - SINGLE_DOC: produce **exactly 2** variants:
+    1) Sparse-optimized (keyword-heavy).  2) Dense-optimized (semantic).
+    Each variant's "video_ids" = [that single mapped id].
+    - MULTI_DOC: produce **exactly 2** decomposed into distinct sub-questions.
+    Each sub-question should target a distinct aspect of the query, not duplicates.
+    Each variant's "video_ids" = all related ids; if none specified, use **top-level video_ids** (i.e., all videos).  
+
+    CONSTRAINTS
+    - Do **not** invent facts or lecture names. Queries must stay grounded in the original question.
+    - "video_ids" must be valid IDs from video_map.
+    - Top-level "video_ids" must equal the union (deduped, order-preserving) of all IDs appearing in query_variants[*].video_ids.
+    - Return **valid JSON only** (no comments/markdown/trailing commas).
+
+    STRICT OUTPUT (return ONLY this JSON object):
+    {{
+    "routing_type": "SINGLE_DOC" | "MULTI_DOC",
+    "user_query": "{user_query}",
+    "video_ids": ["..."],
+    "query_variants": [
+        {{ "video_ids": ["..."], "question": "..." }},
+        {{ "video_ids": ["..."], "question": "..." }}
+    ]
+    }}
+    
+    """
+
 
 
 #Nicole added for PreQRAG  OLD
