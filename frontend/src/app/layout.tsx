@@ -36,7 +36,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute={"class"}
           forcedTheme={"dark"}
-          storageKey={"gamehub-theme"}
+          storageKey={"videochatbot-theme"}
         >
           <VideoProvider>
             <Toaster position="top-right" />

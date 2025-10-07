@@ -4,6 +4,10 @@ import React, {useEffect, useMemo, useRef, useState} from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Thumbnail } from "@/components/thumbnail";
+import { getManageStreams } from "@/api/feed-service-manage";
+import video_api from "@/api/video-indexer-widget";
+import { Course, Video } from "@/model/Course";
 
 type ChatMessage = {
   id: string;
@@ -38,7 +42,11 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const listRef = useRef<HTMLDivElement | null>(null);
   const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || "";
-  const VIDEO_ID = "zwb6lqhpzl"; // TODO: replace with the actual Azure Video Indexer video_id
+  // Course and videos state
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourseCode, setSelectedCourseCode] = useState<string>("");
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]); // up to 2 ids
+  const [playerUrlsByVideoId, setPlayerUrlsByVideoId] = useState<Record<string, string>>({});
 
   const canSend = useMemo(() => input.trim().length > 0, [input]);
 
@@ -46,6 +54,64 @@ export default function ChatPage() {
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length]);
+
+  // load courses and videos mapping
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const data = await getManageStreams();
+        setCourses(data);
+        // default to first course if exists
+        if (data && data.length > 0) {
+          setSelectedCourseCode((prev) => prev || data[0].courseCode);
+        }
+      } catch (e) {
+        console.error("Failed to load courses", e);
+      }
+    };
+    loadCourses();
+  }, []);
+
+  // fetch player URLs when selected videos change
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const toFetch = selectedVideos.filter((id) => !playerUrlsByVideoId[id]);
+        if (toFetch.length === 0) return;
+        const results = await Promise.all(
+          toFetch.map(async (id) => {
+            const res = await video_api.fetchVideoPlayerWidget(id);
+            return { id, url: res.video_widget_url as string };
+          })
+        );
+        setPlayerUrlsByVideoId((prev) => {
+          const next = { ...prev } as Record<string, string>;
+          for (const { id, url } of results) next[id] = url;
+          return next;
+        });
+      } catch (e) {
+        console.error("Failed to load player URLs", e);
+      }
+    };
+    if (selectedVideos.length > 0) fetchPlayers();
+  }, [selectedVideos]);
+
+  const currentCourse = useMemo(() => {
+    return courses.find((c) => c.courseCode === selectedCourseCode);
+  }, [courses, selectedCourseCode]);
+
+  const courseVideos: (Video & { courseName: string })[] = useMemo(() => {
+    if (!currentCourse) return [] as any;
+    return currentCourse.courseVideos.map((v) => ({ ...v, courseName: currentCourse.courseName }));
+  }, [currentCourse]);
+
+  const toggleVideoSelection = (videoId: string) => {
+    setSelectedVideos((prev) => {
+      if (prev.includes(videoId)) return prev.filter((id) => id !== videoId);
+      if (prev.length >= 2) return [prev[1], videoId]; // keep last + new
+      return [...prev, videoId];
+    });
+  };
 
   // Helper to convert local messages into API's previous_messages shape
   const buildPreviousMessages = (history: ChatMessage[]) => {
@@ -64,7 +130,8 @@ export default function ChatPage() {
 
   //sending the message 
   const sendMessage = async () => {
-    if (!canSend) return; //no empty messages 
+    if (!canSend) return; // no empty messages
+    if (selectedVideos.length === 0) return; // require at least one video selected
 
     const userMsg: ChatMessage = {
       id: generateId(),
@@ -77,7 +144,9 @@ export default function ChatPage() {
 
     try {
       const previous_messages = buildPreviousMessages([...messages, userMsg]);
-      const res = await fetch(`${BASE_URL}/chat/${VIDEO_ID}`, {
+      // Use the first selected video for chat context. If backend supports multi-video,
+      // extend the API to accept both selectedVideos.
+      const res = await fetch(`${BASE_URL}/chat/${selectedVideos[0]}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ previous_messages, message: userMsg.content })
@@ -114,23 +183,80 @@ export default function ChatPage() {
         <h1 className="text-xl font-semibold">Video Lecture Chatbot</h1>
       </div>
 
-      <div className="grid h-full grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1">
-        {/* Left: YouTube player */}
-        <Card className="p-4">
-          <div className="relative h-full w-full">
-            <div className="relative w-full pt-[56.25%]">{/* 16:9 ratio */}
-              <iframe
-                className="absolute left-0 top-0 h-full w-full rounded-md"
-                src="https://www.youtube.com/live/gn-GUwOsLMo?si=NsxXqe-wRZLchH6k"
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
+      <div className="grid h-full gap-4 md:grid-cols-3 md:grid-rows-1">
+        {/* Panel 1: Course selector + scrollable videos list */}
+        <Card className="p-4 flex flex-col">
+          <div className="mb-3 flex items-center gap-2">
+            <label className="text-sm font-medium">Course</label>
+            <select
+              className="border rounded px-2 py-1"
+              value={selectedCourseCode}
+              onChange={(e) => {
+                setSelectedCourseCode(e.target.value);
+                setSelectedVideos([]);
+              }}
+            >
+              {courses.map((c) => (
+                <option key={c.courseCode} value={c.courseCode}>{c.courseCode} — {c.courseName}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 overflow-y-auto flex-1 pr-1">
+            {courseVideos.map((v) => {
+              const isSelected = selectedVideos.includes(v.videoId);
+              return (
+                <button
+                  key={v.videoId}
+                  onClick={() => toggleVideoSelection(v.videoId)}
+                  className={`text-left rounded border p-2 hover:bg-muted ${isSelected ? "ring-2 ring-primary" : ""}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-28 shrink-0">
+                      <Thumbnail
+                        src={v.thumbnail}
+                        fallback={""}
+                        username={v.videoName}
+                        hover={false}
+                      />
+                    </div>
+                    <div className="text-sm">
+                      <div className="font-medium line-clamp-2">{v.videoName}</div>
+                      <div className="text-xs text-muted-foreground">{v.courseName}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </Card>
 
-        {/* Right: Chat UI */}
+        {/* Panel 2: Two selected videos stacked with titles */}
+        <Card className="p-4 space-y-4">
+          {selectedVideos.length === 0 && (
+            <div className="text-sm text-muted-foreground">Select up to two videos from the left list.</div>
+          )}
+          {selectedVideos.slice(0, 2).map((vid) => {
+            const url = playerUrlsByVideoId[vid];
+            const video = courseVideos.find((v) => v.videoId === vid);
+            if (!url) return null;
+            return (
+              <div key={vid} className="space-y-2">
+                <div className="text-sm font-medium">{video?.videoName || vid}</div>
+                <div className="relative w-full pt-[56.25%]">
+                  <iframe
+                    className="absolute left-0 top-0 h-full w-full rounded-md"
+                    src={url}
+                    title={`Video ${vid}`}
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </Card>
+
+        {/* Panel 3: Chat UI */}
         <Card className="flex h-full flex-col p-0">
           <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.map((m) => (
@@ -153,8 +279,9 @@ export default function ChatPage() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message..."
+                disabled={selectedVideos.length === 0}
               />
-              <Button onClick={sendMessage} disabled={!canSend}>
+              <Button onClick={sendMessage} disabled={!canSend || selectedVideos.length === 0}>
                 Send
               </Button>
             </div>
