@@ -14,7 +14,7 @@ from openai import AsyncAzureOpenAI
 
 from chatservice.repository import ChatDatabaseService
 from chatservice.model import ChatHistory, LLMIsTemporalResponse
-from chatservice.utils import weighted_reciprocal_rank, bge_rerank_documents
+from chatservice.utils import weighted_reciprocal_rank
 from loggingConfig import logger
 from utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds, get_prompt_preQrag, get_prompt_preQrag_temporal
 
@@ -533,17 +533,14 @@ class ChatService:
                 except Exception as exc:
                     print(f'Query variant {variant_index} generated an exception: {exc}')
             
-            # Apply BGE reranking to combined document lists from both variants
+            # Apply weighted reciprocal rank to combined document lists from both variants
             if all_doc_lists:
-                print(f"DEBUG: Combining {len(all_doc_lists)} document lists for BGE reranking")
+                print(f"DEBUG: Combining {len(all_doc_lists)} document lists for weighted reciprocal rank")
                 
-                # Get the base query from the first variant for reranking
-                base_query = queryVariants[0].get('question', '') if queryVariants else ''
-                
-                # Use BGE reranker instead of weighted reciprocal rank
-                fused_documents_rerank = bge_rerank_documents(base_query, all_doc_lists, top_k=top_n)
+                # Use weighted reciprocal rank for document fusion
+                fused_documents_rerank = weighted_reciprocal_rank(all_doc_lists)[:top_n]
                 retrieval_results_rerank = [Document(page_content=doc['text']) for doc in fused_documents_rerank]
-                print(f"DEBUG: After BGE reranking: {len(retrieval_results_rerank)} chunks")
+                print(f"DEBUG: After weighted reciprocal rank: {len(retrieval_results_rerank)} chunks")
                 
                 # Add reranked results to final results
                 all_retrieval_results.extend(retrieval_results_rerank)
