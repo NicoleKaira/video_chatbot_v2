@@ -127,6 +127,39 @@ class ChatService:
             print("Something happened: ", ex)
             return ex
 
+    def get_video_id_title_mapping(self, course_code: str) -> dict:
+        """
+        Retrieve a mapping of video names to video IDs for a given course.
+
+        Args:
+            course_code (str): Course Code. Required.
+
+        Returns:
+            dict: {"video_map": {"<video_name>": "<video_id>", ...}}
+        """
+        # First, get the course document
+        course_doc = self.chat_db.check_if_course_exist(course_code)
+        if not course_doc:
+            return {"video_map": {}}
+        
+        video_map = {}
+        
+        # Get the video ObjectIds from the course document
+        video_object_ids = course_doc.get("videos", [])
+        
+        # For each video ObjectId, get the video document
+        for video_object_id in video_object_ids:
+            video_doc = self.chat_db.video_collection.find_one({"_id": video_object_id})
+            if video_doc:
+                video_id = video_doc.get("video_id")
+                video_name = video_doc.get("name")
+                if video_id and video_name:
+                    video_map[video_name] = video_id
+        
+        return {"video_map": video_map}
+    #nicole added ^
+
+
     # Semantic Search on Uncleaned results
     def retrieve_results_prompt_naive(self, video_id, message, top_n: int = 5):
         docs_semantic = self.chat_db.retrieve_results_prompt_semantic(video_id, message)[:top_n]
@@ -364,8 +397,7 @@ class ChatService:
             print(f"[route_pre_qrag] Error: {e}")
             
 
-    
-        
+            
     def retrival_singledocs_multidocs(self, queryVariants, top_n: int=5):
         
         all_retrieval_results = []
@@ -399,7 +431,7 @@ class ChatService:
         return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
 
 
-    def retrival_multidocs_with_Temporal(self, queryVariants, top_n: int=5):
+    def retrival_singledocs_multidocs_with_Temporal(self, queryVariants, top_n: int=5):
             
             all_retrieval_results = []
             all_fused_documents = []
@@ -447,106 +479,106 @@ class ChatService:
 
     
     
-    def retrival_singledocs_with_Temporal(self, queryVariants, top_n: int = 6):
-        """
-        Process query variants with temporal and semantic/text retrieval.
-        queryVariants[0] uses semantic processing, queryVariants[1] uses text processing.
-        """
-        all_retrieval_results = []
-        all_fused_documents = []
+    # def retrival_singledocs_with_Temporal(self, queryVariants, top_n: int = 6):
+    #     """
+    #     Process query variants with temporal and semantic/text retrieval.
+    #     queryVariants[0] uses semantic processing, queryVariants[1] uses text processing.
+    #     """
+    #     all_retrieval_results = []
+    #     all_fused_documents = []
 
-        def process_temporal_retrieval(vid_list, temporal_signal, variant_index):
-            """Handle temporal retrieval if temporal_signal is provided."""
-            if not temporal_signal:
-                return [], []
+    #     def process_temporal_retrieval(vid_list, temporal_signal, variant_index):
+    #         """Handle temporal retrieval if temporal_signal is provided."""
+    #         if not temporal_signal:
+    #             return [], []
             
-            docs_temporal, temporal_fused_docs = self.chat_db.retrieve_chunks_by_timestamp(vid_list, temporal_signal)
-            print(f"Query variant {variant_index}: {len(docs_temporal)} temporal chunks")
-            return docs_temporal, temporal_fused_docs
+    #         docs_temporal, temporal_fused_docs = self.chat_db.retrieve_chunks_by_timestamp(vid_list, temporal_signal)
+    #         print(f"Query variant {variant_index}: {len(docs_temporal)} temporal chunks")
+    #         return docs_temporal, temporal_fused_docs
 
-        def process_document_retrieval(vid_list, sub_query, retrieval_type, variant_index):
-            """Handle semantic or text document retrieval (no reranking)."""
-            if retrieval_type == "semantic":
-                docs = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
-            else:  # text
-                docs = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
+    #     def process_document_retrieval(vid_list, sub_query, retrieval_type, variant_index):
+    #         """Handle semantic or text document retrieval (no reranking)."""
+    #         if retrieval_type == "semantic":
+    #             docs = self.chat_db.retrieve_results_prompt_semantic_v2_multivid(vid_list, sub_query)
+    #         else:  # text
+    #             docs = self.chat_db.retrieve_results_prompt_text_v2_multivid(vid_list, sub_query)
             
-            # Format documents for reranking (but don't rerank yet)
-            formatted_docs = [
-                {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
-                for doc in docs
-            ]
+    #         # Format documents for reranking (but don't rerank yet)
+    #         formatted_docs = [
+    #             {"_id": str(doc["_id"]), "text": doc["textContent"], "score": doc["score"]}
+    #             for doc in docs
+    #         ]
             
-            # print(f"Query variant {variant_index}: Retrieved {len(formatted_docs)} {retrieval_type} documents")
-            return formatted_docs
+    #         # print(f"Query variant {variant_index}: Retrieved {len(formatted_docs)} {retrieval_type} documents")
+    #         return formatted_docs
 
-        def process_variant(variant, variant_index, retrieval_type):
-            """Process a single query variant with specified retrieval type."""
-            vid_list = variant.get('video_ids')
-            sub_query = variant.get('question')
-            temporal_signal = variant.get('temporal_signal')
+    #     def process_variant(variant, variant_index, retrieval_type):
+    #         """Process a single query variant with specified retrieval type."""
+    #         vid_list = variant.get('video_ids')
+    #         sub_query = variant.get('question')
+    #         temporal_signal = variant.get('temporal_signal')
 
-            print ('this is the variant: ',variant)
+    #         print ('this is the variant: ',variant)
 
-            retrieval_results_local = []
-            fused_documents_local = []
+    #         retrieval_results_local = []
+    #         fused_documents_local = []
 
-            # Process temporal retrieval if available
-            temporal_docs, temporal_fused = process_temporal_retrieval(vid_list, temporal_signal, variant_index)
-            retrieval_results_local.extend(temporal_docs)
-            fused_documents_local.extend(temporal_fused)
+    #         # Process temporal retrieval if available
+    #         temporal_docs, temporal_fused = process_temporal_retrieval(vid_list, temporal_signal, variant_index)
+    #         retrieval_results_local.extend(temporal_docs)
+    #         fused_documents_local.extend(temporal_fused)
 
-            # Process document retrieval (semantic or text) - return both temporal and document results
-            doc_results = process_document_retrieval(vid_list, sub_query, retrieval_type, variant_index)
+    #         # Process document retrieval (semantic or text) - return both temporal and document results
+    #         doc_results = process_document_retrieval(vid_list, sub_query, retrieval_type, variant_index)
             
-            return retrieval_results_local, fused_documents_local, doc_results
+    #         return retrieval_results_local, fused_documents_local, doc_results
 
-        # Process variants with specific retrieval types concurrently
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            # Submit both variants for concurrent processing
-            future_to_variant = {}
+    #     # Process variants with specific retrieval types concurrently
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    #         # Submit both variants for concurrent processing
+    #         future_to_variant = {}
             
-            if len(queryVariants) > 0:
-                # First variant uses semantic processing
+    #         if len(queryVariants) > 0:
+    #             # First variant uses semantic processing
 
-                future_to_variant[executor.submit(process_variant, queryVariants[0], 0, "semantic")] = 0
+    #             future_to_variant[executor.submit(process_variant, queryVariants[0], 0, "semantic")] = 0
             
-            if len(queryVariants) > 1:
-                # Second variant uses text processing
-                future_to_variant[executor.submit(process_variant, queryVariants[1], 1, "text")] = 1
+    #         if len(queryVariants) > 1:
+    #             # Second variant uses text processing
+    #             future_to_variant[executor.submit(process_variant, queryVariants[1], 1, "text")] = 1
             
-            # Collect results as they complete
-            all_doc_lists = []  # Store document lists from both variants
+    #         # Collect results as they complete
+    #         all_doc_lists = []  # Store document lists from both variants
             
-            for future in concurrent.futures.as_completed(future_to_variant):
-                variant_index = future_to_variant[future]
-                try:
-                    retrieval_results_local, fused_documents_local, doc_results = future.result()
+    #         for future in concurrent.futures.as_completed(future_to_variant):
+    #             variant_index = future_to_variant[future]
+    #             try:
+    #                 retrieval_results_local, fused_documents_local, doc_results = future.result()
                     
-                    # Add temporal results
-                    all_retrieval_results.extend(retrieval_results_local)
-                    all_fused_documents.extend(fused_documents_local)
+    #                 # Add temporal results
+    #                 all_retrieval_results.extend(retrieval_results_local)
+    #                 all_fused_documents.extend(fused_documents_local)
                     
-                    # Store document results for combined reranking
-                    all_doc_lists.append(doc_results)
+    #                 # Store document results for combined reranking
+    #                 all_doc_lists.append(doc_results)
                     
-                except Exception as exc:
-                    print(f'Query variant {variant_index} generated an exception: {exc}')
+    #             except Exception as exc:
+    #                 print(f'Query variant {variant_index} generated an exception: {exc}')
             
-            # Apply weighted reciprocal rank to combined document lists from both variants
-            if all_doc_lists:
-                print(f"DEBUG: Combining {len(all_doc_lists)} document lists for weighted reciprocal rank")
+    #         # Apply weighted reciprocal rank to combined document lists from both variants
+    #         if all_doc_lists:
+    #             print(f"DEBUG: Combining {len(all_doc_lists)} document lists for weighted reciprocal rank")
                 
-                # Use weighted reciprocal rank for document fusion
-                fused_documents_rerank = weighted_reciprocal_rank(all_doc_lists)[:top_n]
-                retrieval_results_rerank = [Document(page_content=doc['text']) for doc in fused_documents_rerank]
-                print(f"DEBUG: After weighted reciprocal rank: {len(retrieval_results_rerank)} chunks")
+    #             # Use weighted reciprocal rank for document fusion
+    #             fused_documents_rerank = weighted_reciprocal_rank(all_doc_lists)[:top_n]
+    #             retrieval_results_rerank = [Document(page_content=doc['text']) for doc in fused_documents_rerank]
+    #             print(f"DEBUG: After weighted reciprocal rank: {len(retrieval_results_rerank)} chunks")
                 
-                # Add reranked results to final results
-                all_retrieval_results.extend(retrieval_results_rerank)
-                all_fused_documents.extend(fused_documents_rerank)
+    #             # Add reranked results to final results
+    #             all_retrieval_results.extend(retrieval_results_rerank)
+    #             all_fused_documents.extend(fused_documents_rerank)
 
-        return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
+    #     return all_retrieval_results, [doc['text'] for doc in all_fused_documents]
 
     
     

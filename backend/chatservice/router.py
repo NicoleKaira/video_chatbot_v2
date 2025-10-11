@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from chatservice.chatservice import ChatService
 from chatservice.model import ChatRequestBody
 
+
 load_dotenv()
 ROUTE_PREFIX = "/chat"
 
@@ -13,6 +14,7 @@ router = APIRouter(prefix=ROUTE_PREFIX, tags=["chat-service"])
 
 
 chat_service = ChatService()
+
 
 # @router.post("/{video_id}", status_code=200)
 # async def get_videos(video_id: str, body: ChatRequestBody):
@@ -24,32 +26,55 @@ chat_service = ChatService()
 #         return {"message": "No Records Found"}
 
 
-@router.post("/{video_id}", status_code=200)
-async def evaluate_question(video_id: str, body: ChatRequestBody):
+@router.post("/", status_code=200)
+async def evaluate_question(body: ChatRequestBody):
     """
-    Evaluate a single question using the evaluation flow of temporal pipeline .
+    Evaluate a single question using PreQRAG routing and multi-video retrieval.
     """
-    # start_time = time.time()
     question = body.message
-    # Step 1: Check if the question is temporal
-    is_temporal_res = await chat_service.is_temporal_question(question)
-    is_temporal = is_temporal_res.is_temporal
-    timestamp = is_temporal_res.timestamp
-
-    if is_temporal:
-        if timestamp:
-            # Retrieve chunks based on the timestamp
-            retrieval_results, _ = chat_service.retrieve_chunks_by_timestamp(video_id, timestamp)
-            response = chat_service.generate_video_prompt_response(retrieval_results, question)
-        else:
-            # fallback if timestamp not extractable
-            retrieval_results, _  = chat_service.retrieve_results_prompt_clean(video_id, question)
-            response = chat_service.generate_video_prompt_response(retrieval_results, question)
-    else:
-        retrieval_results, _ = chat_service.retrieve_results_prompt_clean(video_id, question)
-        response = chat_service.generate_video_prompt_response(retrieval_results, question)
+    video_ids = body.video_ids  # Get list of video IDs from request body
+    course_code = body.course_code  # Get course code from request body
     
-    if response:
-        return {"message": "Successfully Retrieve", "answer": response}
-    else:
-        return {"message": "No Records Found"}
+    try:
+        # Step 1: Get video mapping from CosmosDB
+        
+        video_mapping = chat_service.get_video_id_title_mapping(course_code)
+        print(f"Video mapping for course {course_code}: {video_mapping}")
+        
+        # Step 2: Route question using PreQRAG
+        json_results_llm = await chat_service.route_pre_qrag_temporal(
+            user_query=question, 
+            video_map=video_mapping
+        )
+        print(f"PreQRAG routing result:\n{json_results_llm}")
+        
+        # Step 3: Extract routing information
+        routing_type = json_results_llm.get("routing_type")
+        query_variants = json_results_llm.get("query_variants")
+        
+        # Step 4: Retrieve documents using the routed query variants
+        retrieval_results, context = chat_service.retrival_singledocs_multidocs_with_Temporal(query_variants)
+        
+        # Step 5: Generate answer using retrieved context
+        response = chat_service.generate_video_prompt_response(retrieval_results, question)
+        
+        if response:
+            return {"message": "Successfully Retrieve", "answer": response}
+        else:
+            return {"message": "No Records Found"}
+            
+    except Exception as e:
+        print(f"Error processing question: {e}")
+        # Fallback to simple retrieval if PreQRAG fails
+        try:
+            retrieval_results, _ = chat_service.retrieve_results_prompt_clean_multivid(video_ids, question)
+            response = chat_service.generate_video_prompt_response(retrieval_results, question)
+            
+            if response:
+                return {"message": "Successfully Retrieve", "answer": response}
+            else:
+                return {"message": "No Records Found"}
+        except Exception as fallback_error:
+            print(f"Fallback retrieval also failed: {fallback_error}")
+            return {"message": "Error processing request"}
+

@@ -808,12 +808,7 @@ class EvaluatorService:
                 routing_type = json_results_llm.get("routing_type")
                 query_variants = json_results_llm.get("query_variants")
 
-                if routing_type == 'SINGLE_DOC':
-                    retrieval_results, context = self.chat_service.retrival_singledocs_with_Temporal(query_variants)
-                
-                else:
-                # Retrieve relevant documents and generate context
-                    retrieval_results, context = self.chat_service.retrival_multidocs_with_Temporal(query_variants)
+                retrieval_results, context = self.chat_service.retrival_singledocs_multidocs_with_Temporal(query_variants)
                 
                 # Generate answer using retrieved context
                 answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)

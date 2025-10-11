@@ -80,6 +80,26 @@ class ChatDatabaseService:
         self.vector_store_prompt_clean_index.create_index(
             num_lists, dimensions, similarity_algorithm, kind, m, ef_construction
         )
+        
+        # Add course collection access
+        self.course_collection = db["course"]
+
+    def check_if_course_exist(self, course_code: str) -> dict:
+        """
+        Check if a course exists and return the course document.
+        
+        Args:
+            course_code (str): Course code to check
+            
+        Returns:
+            dict: Course document if exists, None otherwise
+        """
+        try:
+            course_doc = self.course_collection.find_one({"course_code": course_code})
+            return course_doc
+        except Exception as e:
+            print(f"Error checking course existence: {e}")
+            return None
 
     def retrieve_results_prompt_semantic(self, video_id: str, user_prompt: str):
         video_reference_id = self.video_collection.find_one({"video_id": video_id})

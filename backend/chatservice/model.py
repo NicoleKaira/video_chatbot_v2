@@ -8,6 +8,8 @@ class ChatHistory(BaseModel):
 class ChatRequestBody(BaseModel):
     previous_messages: list[ChatHistory] = []
     message: str
+    video_ids: list[str] = []
+    course_code: str = ""
 
 class LLMIsTemporalResponse(BaseModel):
     is_temporal: bool

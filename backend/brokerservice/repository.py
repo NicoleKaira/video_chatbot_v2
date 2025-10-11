@@ -106,7 +106,7 @@ class BrokerRepository:
             return {}
         
     
-#nicole added for mutlidocs 
+#nicole added for mutlidocs  (shifted the one used for the final in chatservice not from here alrady)
     def get_video_id_title_mapping(self, course_code: str) -> dict:
         """
         Retrieve a mapping of video names to video IDs for a given course.

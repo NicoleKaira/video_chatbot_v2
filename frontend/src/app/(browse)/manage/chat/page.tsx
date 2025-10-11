@@ -45,7 +45,9 @@ export default function ChatPage() {
   // Course and videos state
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseCode, setSelectedCourseCode] = useState<string>("");
-  const [selectedVideos, setSelectedVideos] = useState<string[]>([]); // up to 2 ids
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]); // up to 2 ids for display
+  const [selectedChatVideos, setSelectedChatVideos] = useState<string[]>([]); // all videos for chat context
+  const [selectionMode, setSelectionMode] = useState<'display' | 'chat'>('chat'); // current selection mode
   const [playerUrlsByVideoId, setPlayerUrlsByVideoId] = useState<Record<string, string>>({});
 
   const canSend = useMemo(() => input.trim().length > 0, [input]);
@@ -113,6 +115,13 @@ export default function ChatPage() {
     });
   };
 
+  const toggleChatVideoSelection = (videoId: string) => {
+    setSelectedChatVideos((prev) => {
+      if (prev.includes(videoId)) return prev.filter((id) => id !== videoId);
+      return [...prev, videoId];
+    });
+  };
+
   // Helper to convert local messages into API's previous_messages shape
   const buildPreviousMessages = (history: ChatMessage[]) => {
     const pairs: { user_input: string; assistant_response: string }[] = [];
@@ -131,7 +140,6 @@ export default function ChatPage() {
   //sending the message 
   const sendMessage = async () => {
     if (!canSend) return; // no empty messages
-    if (selectedVideos.length === 0) return; // require at least one video selected
 
     const userMsg: ChatMessage = {
       id: generateId(),
@@ -144,12 +152,21 @@ export default function ChatPage() {
 
     try {
       const previous_messages = buildPreviousMessages([...messages, userMsg]);
-      // Use the first selected video for chat context. If backend supports multi-video,
-      // extend the API to accept both selectedVideos.
-      const res = await fetch(`${BASE_URL}/chat/${selectedVideos[0]}`, {
+      
+      // Use chat video selection, or all videos if none selected
+      const videoIdsToSend = selectedChatVideos.length > 0 
+        ? selectedChatVideos 
+        : courseVideos.map(v => v.videoId);
+      
+      const res = await fetch(`${BASE_URL}/chat/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ previous_messages, message: userMsg.content })
+        body: JSON.stringify({ 
+          previous_messages, 
+          message: userMsg.content,
+          video_ids: videoIdsToSend,
+          course_code: selectedCourseCode
+        })
       });
       if (!res.ok) throw new Error("Chat API failed");
       const data = await res.json();
@@ -180,39 +197,70 @@ export default function ChatPage() {
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full flex-col gap-4 p-4 md:px-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Video Lecture Chatbot</h1>
-      </div>
-
-      <div className="grid h-full gap-4 md:grid-cols-4 md:grid-rows-1">
-        {/* Panel 1: Course selector + scrollable videos list */}
-        <Card className="p-4 flex flex-col md:col-span-1">
-          <div className="mb-3 flex items-center gap-2">
-            <label className="text-sm font-medium">Course</label>
-            <select
-              className="border rounded px-2 py-1"
-              value={selectedCourseCode}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-bold">Course</label>
+          <select
+            className="border rounded px-2 py-1"
+            value={selectedCourseCode}
               onChange={(e) => {
                 setSelectedCourseCode(e.target.value);
                 setSelectedVideos([]);
+                setSelectedChatVideos([]);
               }}
-            >
-              {courses.map((c) => (
-                <option key={c.courseCode} value={c.courseCode}>{c.courseCode} — {c.courseName}</option>
-              ))}
-            </select>
+          >
+            {courses.map((c) => (
+              <option key={c.courseCode} value={c.courseCode}>{c.courseCode} — {c.courseName}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid h-full gap-4 md:grid-cols-5 md:grid-rows-1">
+        {/* Panel 1: Course selector + scrollable videos list */}
+        <Card className="p-4 flex flex-col md:col-span-1">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-white mb-2">Video Sources</h2>
+            <div className="border-b border-gray-300 mb-4"></div>
+            <div className="mb-3 flex gap-2">
+              <button 
+                className={`px-3 py-1 text-xs rounded ${selectionMode === 'chat' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                onClick={() => setSelectionMode('chat')}
+              >
+                Chat Context (All)
+              </button>
+              <button 
+                className={`px-3 py-1 text-xs rounded ${selectionMode === 'display' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                onClick={() => setSelectionMode('display')}
+              >
+                Display (2 max)
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 overflow-y-auto flex-1 pr-1">
             {courseVideos.map((v) => {
-              const isSelected = selectedVideos.includes(v.videoId);
+              const isDisplaySelected = selectedVideos.includes(v.videoId);
+              const isChatSelected = selectedChatVideos.includes(v.videoId);
+              const isSelected = selectionMode === 'display' ? isDisplaySelected : isChatSelected;
+              
               return (
                 <button
                   key={v.videoId}
-                  onClick={() => toggleVideoSelection(v.videoId)}
-                  className={`text-left rounded-lg p-4 hover:bg-muted transition-all duration-200 ${isSelected ? "ring-2 ring-primary bg-blue-50" : ""}`}
+                  onClick={() => {
+                    if (selectionMode === 'display') {
+                      toggleVideoSelection(v.videoId);
+                    } else {
+                      toggleChatVideoSelection(v.videoId);
+                    }
+                  }}
+                  className={`text-left rounded-lg p-4 hover:bg-muted transition-all duration-200 ${
+                    isSelected 
+                      ? (selectionMode === 'display' ? "ring-2 ring-blue-500 bg-blue-50 border-2 border-white" : "ring-2 ring-green-500 bg-green-50 border-2 border-white")
+                      : ""
+                  }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-36 shrink-0">
+                    <div className="w-24 shrink-0">
                       <Thumbnail
                         src={v.thumbnail}
                         fallback={""}
@@ -221,8 +269,14 @@ export default function ChatPage() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className={`font-bold text-lg line-clamp-2 mb-1 ${isSelected ? "text-black" : "text-white"}`}>{v.videoName}</div>
+                      <div className={`font-bold text-sm line-clamp-2 mb-1 ${isSelected ? "text-black" : "text-white"}`}>{v.videoName}</div>
                       <div className="text-sm text-muted-foreground font-medium">{v.courseName}</div>
+                      {isDisplaySelected && selectionMode === 'chat' && (
+                        <div className="text-xs text-blue-600 mt-1">📺 Display</div>
+                      )}
+                      {isChatSelected && selectionMode === 'display' && (
+                        <div className="text-xs text-green-600 mt-1">💬 Chat</div>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -232,10 +286,16 @@ export default function ChatPage() {
         </Card>
 
         {/* Panel 2: Two selected videos stacked with titles */}
-        <Card className="p-2 space-y-2 md:col-span-2">
-          {selectedVideos.length === 0 && (
-            <div className="text-sm text-muted-foreground">Select up to two videos from the left list.</div>
-          )}
+        <Card className="p-4 flex flex-col md:col-span-2">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-white mb-2">Video</h2>
+            <div className="border-b border-gray-300 mb-4"></div>
+          </div>
+          
+          <div className="space-y-2">
+            {selectedVideos.length === 0 && (
+              <div className="text-sm text-muted-foreground">Under the Display tab, select up to two videos from the left list.</div>
+            )}
           {selectedVideos.slice(0, 2).map((vid) => {
             const url = playerUrlsByVideoId[vid];
             const video = courseVideos.find((v) => v.videoId === vid);
@@ -254,10 +314,14 @@ export default function ChatPage() {
               </div>
             );
           })}
+          </div>
         </Card>
 
         {/* Panel 3: Chat UI */}
-        <Card className="flex h-full flex-col p-0 md:col-span-1">
+        <Card className="flex h-full flex-col p-0 md:col-span-2">
+          <div className="p-4 border-b border-gray-300">
+            <h2 className="text-lg font-bold text-white mb-2">Chat</h2>
+          </div>
           <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.map((m) => (
               <div key={m.id} className={`flex w-full gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -282,19 +346,78 @@ export default function ChatPage() {
             ))}
           </div>
 
+          {/* Context Section */}
+          <div className="border-t p-3 bg-gray-100">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-black">Context</h3>
+              <span className="text-xs text-black">
+                {selectedChatVideos.length > 0 ? `${selectedChatVideos.length} video${selectedChatVideos.length > 1 ? 's' : ''}` : 'All videos'}
+              </span>
+            </div>
+            
+            {/* Video Selection Dropdown */}
+            <div className="mb-3">
+              <select
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1 bg-white text-black"
+                value=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    toggleChatVideoSelection(e.target.value);
+                    e.target.value = ""; // Reset dropdown
+                  }
+                }}
+              >
+                <option value="">Select content context</option>
+                {courseVideos
+                  .filter(v => !selectedChatVideos.includes(v.videoId))
+                  .map((video) => (
+                    <option key={video.videoId} value={video.videoId}>
+                      {video.videoName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            
+            <div className="flex flex-wrap gap-1">
+              {selectedChatVideos.length > 0 ? (
+                selectedChatVideos.map((videoId) => {
+                  const video = courseVideos.find((v) => v.videoId === videoId);
+                  return (
+                    <div
+                      key={videoId}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md border border-green-200"
+                    >
+                      <span className="text-green-600">📹</span>
+                      <span className="truncate max-w-[120px]">{video?.videoName || videoId}</span>
+                      <button
+                        onClick={() => toggleChatVideoSelection(videoId)}
+                        className="ml-1 text-green-600 hover:text-green-800"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-xs text-black italic">
+                  Using all {courseVideos.length} videos as context
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="border-t p-4 bg-gray-50">
             <div className="flex items-center gap-3">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message..."
-                disabled={selectedVideos.length === 0}
+                placeholder="Ask about any video content..."
                 className="text-base py-3 px-4 border-2 focus:border-gray-300 focus:ring-0"
               />
               <Button 
                 onClick={sendMessage} 
-                disabled={!canSend || selectedVideos.length === 0}
+                disabled={!canSend}
                 className="px-6 py-3 text-base font-medium"
               >
                 Send
