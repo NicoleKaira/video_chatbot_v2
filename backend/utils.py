@@ -280,7 +280,7 @@ def get_prompt_preQrag_temporal():
 
     STEP 3 — QUESTION REWRITING
     - SINGLE_DOC: produce **exactly 2** variants:
-    1) Sparse-optimized (keyword-heavy).  2) Dense-optimized (semantic).
+    1) Dense-optimized (semantic).  2) Sparse-optimized (keyword-heavy).
     Each variant's "video_ids" = [that single mapped id].
      - MULTI_DOC: produce **exactly 2** decomposed into distinct sub-questions.
     Each sub-question should target a distinct aspect of the query, not duplicates.
@@ -326,7 +326,7 @@ def get_prompt_preQrag():
 
     STEP 3 — QUESTION REWRITING
     - SINGLE_DOC: produce **exactly 2** variants:
-    1) Sparse-optimized (keyword-heavy).  2) Dense-optimized (semantic).
+    1) Dense-optimized (semantic).  2) Sparse-optimized (keyword-heavy).
     Each variant's "video_ids" = [that single mapped id].
     - MULTI_DOC: produce **exactly 2** decomposed into distinct sub-questions.
     Each sub-question should target a distinct aspect of the query, not duplicates.

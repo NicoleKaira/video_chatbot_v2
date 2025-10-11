@@ -19,3 +19,5 @@ langchain_openai~=0.3.6
 datasets~=3.3.1
 ragas~=0.2.13
 bcrypt~=4.3.0
+
+torch transformers

@@ -200,7 +200,7 @@ class ChatDatabaseService:
                 "$vectorSearch": {
                     "index": self.vector_store_prompt_clean_index.get_index_name(),
                     "filter": video_id_filter,
-                    "limit": 20, # <- total 20 chuncks retrieved.
+                    "limit": 20, # <- total 20 chuncks retrieved
                     "numCandidates": 10, # <- Examines 10 candidate documents per video (for efficiency)
                     "path": "vectorContent", 
                     "queryVector": self.embedding_function.embed_query(user_prompt)

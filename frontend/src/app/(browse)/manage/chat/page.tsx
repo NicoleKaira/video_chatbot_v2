@@ -183,9 +183,9 @@ export default function ChatPage() {
         <h1 className="text-xl font-semibold">Video Lecture Chatbot</h1>
       </div>
 
-      <div className="grid h-full gap-4 md:grid-cols-3 md:grid-rows-1">
+      <div className="grid h-full gap-4 md:grid-cols-4 md:grid-rows-1">
         {/* Panel 1: Course selector + scrollable videos list */}
-        <Card className="p-4 flex flex-col">
+        <Card className="p-4 flex flex-col md:col-span-1">
           <div className="mb-3 flex items-center gap-2">
             <label className="text-sm font-medium">Course</label>
             <select
@@ -209,10 +209,10 @@ export default function ChatPage() {
                 <button
                   key={v.videoId}
                   onClick={() => toggleVideoSelection(v.videoId)}
-                  className={`text-left rounded border p-2 hover:bg-muted ${isSelected ? "ring-2 ring-primary" : ""}`}
+                  className={`text-left rounded-lg p-4 hover:bg-muted transition-all duration-200 ${isSelected ? "ring-2 ring-primary bg-blue-50" : ""}`}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="w-28 shrink-0">
+                  <div className="flex items-start gap-4">
+                    <div className="w-36 shrink-0">
                       <Thumbnail
                         src={v.thumbnail}
                         fallback={""}
@@ -220,9 +220,9 @@ export default function ChatPage() {
                         hover={false}
                       />
                     </div>
-                    <div className="text-sm">
-                      <div className="font-medium line-clamp-2">{v.videoName}</div>
-                      <div className="text-xs text-muted-foreground">{v.courseName}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-bold text-lg line-clamp-2 mb-1 ${isSelected ? "text-black" : "text-white"}`}>{v.videoName}</div>
+                      <div className="text-sm text-muted-foreground font-medium">{v.courseName}</div>
                     </div>
                   </div>
                 </button>
@@ -232,7 +232,7 @@ export default function ChatPage() {
         </Card>
 
         {/* Panel 2: Two selected videos stacked with titles */}
-        <Card className="p-4 space-y-4">
+        <Card className="p-2 space-y-2 md:col-span-2">
           {selectedVideos.length === 0 && (
             <div className="text-sm text-muted-foreground">Select up to two videos from the left list.</div>
           )}
@@ -241,9 +241,9 @@ export default function ChatPage() {
             const video = courseVideos.find((v) => v.videoId === vid);
             if (!url) return null;
             return (
-              <div key={vid} className="space-y-2">
-                <div className="text-sm font-medium">{video?.videoName || vid}</div>
-                <div className="relative w-full pt-[56.25%]">
+              <div key={vid} className="space-y-1">
+                <div className="text-sm font-bold">{video?.videoName || vid}</div>
+                <div className="relative w-full pt-[40%]">
                   <iframe
                     className="absolute left-0 top-0 h-full w-full rounded-md"
                     src={url}
@@ -257,31 +257,46 @@ export default function ChatPage() {
         </Card>
 
         {/* Panel 3: Chat UI */}
-        <Card className="flex h-full flex-col p-0">
+        <Card className="flex h-full flex-col p-0 md:col-span-1">
           <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.map((m) => (
-              <div key={m.id} className={`flex w-full ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={m.id} className={`flex w-full gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                {m.role === "assistant" && (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg shrink-0">
+                    🤖
+                  </div>
+                )}
                 <div
-                  className={`max-w-[80%] rounded-md px-3 py-2 text-sm leading-relaxed shadow-sm ${
-                    m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                  className={`max-w-[80%] rounded-md px-3 py-2 text-base leading-relaxed shadow-sm ${
+                    m.role === "user" ? "bg-blue-500 text-white" : "bg-white text-black border"
                   }`}
                 >
                   {m.content}
                 </div>
+                {m.role === "user" && (
+                  <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-lg shrink-0">
+                    👤
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
-          <div className="border-t p-3">
-            <div className="flex items-center gap-2">
+          <div className="border-t p-4 bg-gray-50">
+            <div className="flex items-center gap-3">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message..."
                 disabled={selectedVideos.length === 0}
+                className="text-base py-3 px-4 border-2 focus:border-gray-300 focus:ring-0"
               />
-              <Button onClick={sendMessage} disabled={!canSend || selectedVideos.length === 0}>
+              <Button 
+                onClick={sendMessage} 
+                disabled={!canSend || selectedVideos.length === 0}
+                className="px-6 py-3 text-base font-medium"
+              >
                 Send
               </Button>
             </div>

@@ -23,7 +23,7 @@ export const VideoIndexerWidget = () => {
     };
 
     fetchVideoIndexerWidget().then();
-  }, [video_id]);
+  }, []);
 
 
 
