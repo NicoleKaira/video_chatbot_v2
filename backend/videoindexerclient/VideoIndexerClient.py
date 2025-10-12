@@ -23,12 +23,15 @@ class VideoIndexerClient:
         self.vi_access_token = ''
         self.account = None
         self.consts = None
+        self.token_expiration_time = None
 
     def authenticate_async(self, consts:Consts) -> None:
         self.consts = consts
         # Get access tokens
         self.arm_access_token = get_arm_access_token(self.consts)
         self.vi_access_token = get_account_access_token_async(self.consts, self.arm_access_token)
+        # Set token expiration time (tokens typically expire in 1 hour, refresh every 50 minutes)
+        self.token_expiration_time = time.time() + (50 * 60)  # 50 minutes from now
 
     def schedule_authentication(self):
         """
@@ -42,6 +45,17 @@ class VideoIndexerClient:
     def start_authentication_scheduler(self) -> None:
         scheduler_thread = Thread(target=self.schedule_authentication)
         scheduler_thread.start()
+
+    def refresh_token_if_needed(self) -> None:
+        """
+        Refreshes the access token if it's close to expiration (within 10 minutes).
+        """
+        if self.token_expiration_time is None or time.time() >= (self.token_expiration_time - 600):  # 10 minutes before expiration
+            logger.info("Refreshing access token before expiration...")
+            self.arm_access_token = get_arm_access_token(self.consts)
+            self.vi_access_token = get_account_access_token_async(self.consts, self.arm_access_token)
+            self.token_expiration_time = time.time() + (50 * 60)  # Reset to 50 minutes from now
+            logger.info("Access token refreshed successfully.")
 
     def get_account_async(self) -> None:
         """
@@ -120,6 +134,7 @@ class VideoIndexerClient:
         Calls getVideoIndex API in 10 second intervals until the indexing state is 'processed'
         (https://api-portal.videoindexer.ai/api-details#api=Operations&operation=Get-Video-Index).
         Prints video index when the index is complete, otherwise throws exception.
+        Automatically refreshes access tokens before they expire to handle long-running video indexing.
 
         :param video_id: The video ID to wait for
         :param language: The language to translate video insights
@@ -130,15 +145,18 @@ class VideoIndexerClient:
         url = f'{self.consts.ApiEndpoint}/{self.account["location"]}/Accounts/{self.account["properties"]["accountId"]}/' + \
             f'Videos/{video_id}/Index'
 
-        params = {
-            'accessToken': self.vi_access_token,
-            'language': language
-        }
-
         print(f'Checking if video {video_id} has finished indexing...')
         processing = True
         start_time = time.time()
         while processing:
+            # Refresh token if needed before making the API call
+            self.refresh_token_if_needed()
+            
+            params = {
+                'accessToken': self.vi_access_token,
+                'language': language
+            }
+
             response = requests.get(url, params=params)
 
             response.raise_for_status()
@@ -155,7 +173,7 @@ class VideoIndexerClient:
                 print(f"The video index failed for video ID {video_id}.")
                 break
 
-            print(f'The video index state is {video_state}')
+            print(f'[{time.strftime("%Y-%m-%d %H:%M:%S")}] The video index state is {video_state}')
 
             if timeout_sec is not None and time.time() - start_time > timeout_sec:
                 print(f'Timeout of {timeout_sec} seconds reached. Exiting...')
@@ -165,6 +183,7 @@ class VideoIndexerClient:
 
     def is_video_processed(self, video_id:str) -> bool:
         self.get_account_async() # if account is not initialized, get it
+        
 
         url = f'{self.consts.ApiEndpoint}/{self.account["location"]}/Accounts/{self.account["properties"]["accountId"]}/' + \
                 f'Videos/{video_id}/Index'
@@ -189,6 +208,7 @@ class VideoIndexerClient:
         """
         try:
             self.get_account_async() # if account is not initialized, get it
+            
             logger.info(f'Searching videos in account {self.account["properties"]["accountId"]} for video ID {video_id}.')
             url = f'{self.consts.ApiEndpoint}/{self.account["location"]}/Accounts/{self.account["properties"]["accountId"]}/' + \
                    f'Videos/{video_id}/Index'
@@ -213,6 +233,7 @@ class VideoIndexerClient:
         :param video_id: The video ID
         """
         self.get_account_async() # if account is not initialized, get it
+        
 
         url = f'{self.consts.ApiEndpoint}/{self.account["location"]}/Accounts/{self.account["properties"]["accountId"]}/' + \
               f'Videos/{video_id}/PromptContent'
@@ -241,6 +262,7 @@ class VideoIndexerClient:
         :return: The prompt content for the video, otherwise None
         """
         self.get_account_async() # if account is not initialized, get it
+        
 
         url = f'{self.consts.ApiEndpoint}/{self.account["location"]}/Accounts/{self.account["properties"]["accountId"]}/' + \
               f'Videos/{video_id}/PromptContent'

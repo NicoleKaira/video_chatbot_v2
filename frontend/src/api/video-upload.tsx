@@ -14,15 +14,18 @@ export interface VideoUploadParams {
   video: Video[];
 }
 
-// Convert file to base64
+// Convert file to base64 (raw base64 string without data URL prefix)
 const readFileAsBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onloadend = () => {
       if (reader.result) {
-        console.log('resolving')
-        resolve(reader.result as string);
+        const dataUrl = reader.result as string;
+        // Extract just the base64 part (remove "data:video/mp4;base64," prefix)
+        const base64String = dataUrl.split(',')[1];
+        console.log('Base64 conversion completed');
+        resolve(base64String);
       } 
       else {
         reject("Failed to read file.");
