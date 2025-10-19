@@ -63,6 +63,59 @@ class ChatService:
         )
         self.chat_db = ChatDatabaseService()
 
+    async def query_evaluation(self, question: str, video_ids: list, course_code: str):
+        """
+        Evaluate a single question using PreQRAG routing and multi-video retrieval.
+        
+        Args:
+            question (str): The user's question
+            video_ids (list): List of video IDs to search in (empty list means all videos)
+            course_code (str): Course code to search in
+            
+        Returns:
+            tuple: (retrieval_results, context) - Retrieved documents and context information
+        """
+        try:
+            # Step 1: Get video mapping from CosmosDB and filter by selected video_ids
+            full_video_mapping = self.get_video_id_title_mapping(course_code)
+            print(f"Full video mapping for course {course_code}: {full_video_mapping}")
+            
+            # Filter video mapping to only include selected video_ids
+            if video_ids and len(video_ids) > 0:
+                # Create a reverse mapping from video_id to video_name
+                video_id_to_name = {v: k for k, v in full_video_mapping.get("video_map", {}).items()}
+                filtered_video_map = {}
+                for video_id in video_ids:
+                    if video_id in video_id_to_name:
+                        video_name = video_id_to_name[video_id]
+                        filtered_video_map[video_name] = video_id
+                video_mapping = {"video_map": filtered_video_map}
+                print(f"Filtered video mapping for selected videos {video_ids}: {video_mapping}")
+            else:
+                # If no video_ids specified, use all videos
+                video_mapping = full_video_mapping
+                print(f"Using all videos for course {course_code}: {video_mapping}")
+            
+            # Step 2: Route question using PreQRAG
+            json_results_llm = await self.route_pre_qrag_temporal(
+                user_query=question, 
+                video_map=video_mapping
+            )
+            print(f"PreQRAG routing result:\n{json_results_llm}")
+            
+            # Step 3: Extract routing information
+            # routing_type = json_results_llm.get("routing_type")
+            query_variants = json_results_llm.get("query_variants")
+            
+            # Step 4: Retrieve documents using the routed query variants
+            retrieval_results, context = self.retrival_singledocs_multidocs_with_Temporal(query_variants)
+            
+            return retrieval_results, context
+            
+        except Exception as e:
+            logger.error(f"Error in query_evaluation: {str(e)}")
+            raise e
+
     def initiate_client(self):
         """
         Initialises a AsyncAzureOpenAI instance to interact with Azure OpenAI services.
@@ -85,7 +138,12 @@ class ChatService:
             print("something happened here")
             print(ex)
 
+    
+
+    
+    
     def generate_video_prompt_response(self, retrieval_results, user_input, previous_messages=None):
+        
         """
         Generate response based on user prompt and selected video.
 

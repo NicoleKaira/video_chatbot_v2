@@ -36,27 +36,13 @@ class VideoService:
     #nicole here!! without indexin
     def index_video_without_indexing (self, video_id: str, excluded_ai: list=None) -> (str, dict):
         """
-        Index Video using Azure AI Video Indexer.
+        Retrieve insights of a video already uploaded and indexed in video indexer
 
         Args:
-            video_base64_encoded (Video): Video to be indexed. Required.
+            video_id (str): Video ID of the video needed to be fetched. Required.
             excluded_ai (list): AI Features to excluded from Azure Video Indexer. Optional.
         """
-        # if excluded_ai is None:
-        #     excluded_ai = ['Faces', 'Labels', 'Emotions', 'ObservedPeople', 'RollingCredits', 'Celebrities', 'Clapperboard', 'FeaturedClothing', 'ShotType', 'PeopleDetectedClothing']
         
-    
-        # if video_base64_encoded.base64_encoded_video.startswith("data"):
-        #     data = video_base64_encoded.base64_encoded_video.split(",")[1]
-        # else:
-        #     data = video_base64_encoded.base64_encoded_video
-
-        # video_data = base64.b64decode(data)
-        # video_file = io.BytesIO(video_data)
-        # video_file.name = video_base64_encoded.video_name
-        # video_id = self.client.file_upload_async(video_file, video_name=video_file.name, excluded_ai=excluded_ai)
-
-        # self.client.wait_for_index_async(video_id) #keep checking every 10seconds until the index is processed 
         insights = self.client.get_video_async(video_id)
         with open(f"nicole_{video_id}.json", "w", encoding="utf-8") as f:
             json.dump(insights, f, indent=4, ensure_ascii=False)
@@ -114,6 +100,33 @@ class VideoService:
             raise Exception("Indexing Video process failed.")
 
     def map_insights_to_document(self, insights):
+        """
+        Processes OCR insights from Azure Video Indexer and organizes them into structured documents.
+        
+        This function takes raw OCR (Optical Character Recognition) data from video analysis
+        and groups text elements by their spatial and temporal coordinates to create
+        meaningful document segments. It handles text that appears at similar times and
+        positions to create coherent text blocks.
+        
+        The function performs the following operations:
+        1. Groups OCR text by timestamp (converted to milliseconds)
+        2. Sorts text elements by their vertical position (top coordinate)
+        3. Groups text that appears at similar vertical positions (within 1 pixel tolerance)
+        4. Creates document segments with start time and associated text
+        5. Filters out segments with too many text elements (>5) to avoid clutter
+        6. Saves the structured data to a JSON file
+        
+        Args:
+            insights (dict): Raw insights data from Azure Video Indexer containing OCR information.
+                           Expected structure: insights["videos"][0]["insights"]["ocr"]
+        
+        Returns:
+            None: The function saves the processed data to "frames.json" file
+        
+        Note:
+            This function is used for creating structured text documents from video content
+            that can be used for search, indexing, or further text analysis.
+        """
         hash_map = collections.defaultdict(list)
 
         for insight in insights["videos"][0]["insights"]["ocr"]:
@@ -148,10 +161,6 @@ class VideoService:
 
         self.save_to_file(document, "frames.json")
 
-# TODO: use a broker
-    # def trigger_video_pipeline(self, fp):
-    #     video_file_id = self.index_video(fp)
-    #     self.map_insights_to_document(video_file_id)
 
     def get_player_widget_url_async(self, video_id: str) -> str:
         result = self.client.get_player_widget_url_async(video_id)

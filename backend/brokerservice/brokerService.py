@@ -15,7 +15,6 @@ class BrokerService:
     Args:
     video_indexer_service (VideoService): Video Service Class. Default: Video Service Class with default arguments.
     transcript_service (TranscriptService): Transcript Service Class. Default: Transcript Service Class with default arguments.
-    language_service (LanguageService): Language Service Class. Default: Language Service Class with default arguments.
     broker_db (BrokerRepository): Inject Broker Repository to service. Default: Broker Repository Class with default arguments.
     """
     def __init__(
@@ -52,10 +51,10 @@ class BrokerService:
                 try:
                     print("starting...")
                     #nicole change this part
-                    # video_id, insights = self.video_indexer_service.index_video(video)
+                    video_id, insights = self.video_indexer_service.index_video(video)
                     # print("done with the index video function, returning back to main")
                     #nicole addition:
-                    video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="3qkbj4qznk")
+                    # video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="3qkbj4qznk")
                   
 
                     #get thumbnail from video indexer

@@ -46,18 +46,34 @@ export function Chat({isChatEnabled, videoId}: {
 
     setValue(""); // Clear the input field
 
+    // Add loading message
+    const loadingMessage = { role: Role.Loading, message: "AI is thinking...", timestamp: Date.now() };
+    setMessages([...newMessages, loadingMessage]);
+
     try {
       // Call external API to get the chat response
       const messagesCopy = JSON.parse(JSON.stringify(messages));
       const response = await getChatResponse(videoId, messagesCopy, trimmedMessage);
-      const updateMessages = [
-        ...newMessages,
-        { role: Role.Assistant, message: response, timestamp: Date.now() },
-      ];
-      setMessages(updateMessages); // Update messages state with user message
+      
+      // Remove loading message and add assistant response
+      setMessages(prev => {
+        const withoutLoading = prev.filter(msg => msg.role !== Role.Loading);
+        return [
+          ...withoutLoading,
+          { role: Role.Assistant, message: response, timestamp: Date.now() },
+        ];
+      });
 
     } catch (error) {
       console.error("Error fetching chat response:", error);
+      // Remove loading message and add error response
+      setMessages(prev => {
+        const withoutLoading = prev.filter(msg => msg.role !== Role.Loading);
+        return [
+          ...withoutLoading,
+          { role: Role.Assistant, message: "Sorry, I couldn't process your request.", timestamp: Date.now() },
+        ];
+      });
     } finally {
       // Re-enable input field after the API call completes
       setIsSubmitting(false);

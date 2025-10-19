@@ -11,7 +11,7 @@ import { Course, Video } from "@/model/Course";
 
 type ChatMessage = {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "loading";
   content: string;
 };
 
@@ -29,6 +29,20 @@ const generateId = (): string => {
     }
   }
   return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+// Typing indicator component
+const TypingIndicator = () => {
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex space-x-1">
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+      </div>
+      <span className="text-sm text-gray-500 ml-2">AI is thinking...</span>
+    </div>
+  );
 };
 
 export default function ChatPage() {
@@ -49,8 +63,9 @@ export default function ChatPage() {
   const [selectedChatVideos, setSelectedChatVideos] = useState<string[]>([]); // all videos for chat context
   const [selectionMode, setSelectionMode] = useState<'display' | 'chat'>('chat'); // current selection mode
   const [playerUrlsByVideoId, setPlayerUrlsByVideoId] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
-  const canSend = useMemo(() => input.trim().length > 0, [input]);
+  const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
 
   //automatically scroll when new message appear
   useEffect(() => {
@@ -149,6 +164,15 @@ export default function ChatPage() {
 
     setMessages((prev) => [...prev, userMsg]); // Add your previous message 
     setInput("");
+    setIsLoading(true);
+
+    // Add loading message
+    const loadingMsg: ChatMessage = {
+      id: generateId(),
+      role: "loading",
+      content: "Loading ..."
+    };
+    setMessages((prev) => [...prev, loadingMsg]);
 
     try {
       const previous_messages = buildPreviousMessages([...messages, userMsg]);
@@ -171,19 +195,30 @@ export default function ChatPage() {
       if (!res.ok) throw new Error("Chat API failed");
       const data = await res.json();
       const answer: string = data?.answer ?? "";
-      const assistantMsg: ChatMessage = {
-        id: generateId(),
-        role: "assistant",
-        content: answer || "(No answer returned)"
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
+      
+      // Remove loading message and add assistant response
+      setMessages((prev) => {
+        const withoutLoading = prev.filter(msg => msg.role !== "loading");
+        const assistantMsg: ChatMessage = {
+          id: generateId(),
+          role: "assistant",
+          content: answer || "(No answer returned)"
+        };
+        return [...withoutLoading, assistantMsg];
+      });
     } catch (e) {
-      const errorMsg: ChatMessage = {
-        id: generateId(),
-        role: "assistant",
-        content: "Sorry, I couldn't reach the chat service."
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+      // Remove loading message and add error response
+      setMessages((prev) => {
+        const withoutLoading = prev.filter(msg => msg.role !== "loading");
+        const errorMsg: ChatMessage = {
+          id: generateId(),
+          role: "assistant",
+          content: "Sorry, I couldn't reach the chat service."
+        };
+        return [...withoutLoading, errorMsg];
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -330,12 +365,17 @@ export default function ChatPage() {
                     🤖
                   </div>
                 )}
+                {m.role === "loading" && (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg shrink-0">
+                    🤖
+                  </div>
+                )}
                 <div
                   className={`max-w-[80%] rounded-md px-3 py-2 text-base leading-relaxed shadow-sm ${
                     m.role === "user" ? "bg-blue-500 text-white" : "bg-white text-black border"
                   }`}
                 >
-                  {m.content}
+                  {m.role === "loading" ? <TypingIndicator /> : m.content}
                 </div>
                 {m.role === "user" && (
                   <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-lg shrink-0">

@@ -36,24 +36,12 @@ async def evaluate_question(body: ChatRequestBody):
     course_code = body.course_code  # Get course code from request body
     
     try:
-        # Step 1: Get video mapping from CosmosDB
-        
-        video_mapping = chat_service.get_video_id_title_mapping(course_code)
-        print(f"Video mapping for course {course_code}: {video_mapping}")
-        
-        # Step 2: Route question using PreQRAG
-        json_results_llm = await chat_service.route_pre_qrag_temporal(
-            user_query=question, 
-            video_map=video_mapping
+        # Use the new query_evaluation function from ChatService
+        retrieval_results, context = await chat_service.query_evaluation(
+            question=question,
+            video_ids=video_ids,
+            course_code=course_code
         )
-        print(f"PreQRAG routing result:\n{json_results_llm}")
-        
-        # Step 3: Extract routing information
-        routing_type = json_results_llm.get("routing_type")
-        query_variants = json_results_llm.get("query_variants")
-        
-        # Step 4: Retrieve documents using the routed query variants
-        retrieval_results, context = chat_service.retrival_singledocs_multidocs_with_Temporal(query_variants)
         
         # Step 5: Generate answer using retrieved context
         response = chat_service.generate_video_prompt_response(retrieval_results, question)

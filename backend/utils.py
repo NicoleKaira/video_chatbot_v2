@@ -284,7 +284,7 @@ def get_prompt_preQrag_temporal():
     Each variant's "video_ids" = [that single mapped id].
      - MULTI_DOC: produce **exactly 2** decomposed into distinct sub-questions.
     Each sub-question should target a distinct aspect of the query, not duplicates.
-    Each variant's "video_ids" = all related ids; if none specified, use **top-level video_ids** (i.e., all videos).  
+    Each variant's "video_ids" = all related ids to each sub-question; if none specified, use **top-level video_ids** (i.e., all videos).  
 
     CONSTRAINTS
     - Do **not** invent facts or lecture names. Queries must stay grounded in the original question.

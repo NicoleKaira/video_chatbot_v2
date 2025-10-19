@@ -9,6 +9,20 @@ import userIcon from "@/assets/images/user.svg"
 import botIcon from "@/assets/images/bot.svg"
 
 
+// Typing indicator component for loading state
+const TypingIndicator = () => {
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex space-x-1">
+        <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+      </div>
+      <span className="text-sm text-white/60 ml-2">AI is thinking...</span>
+    </div>
+  );
+};
+
 export function ChatMessage({ data }: { data: OngoingChatMessage }) {
 
   const formatMessage = (message: string) => {
@@ -33,7 +47,11 @@ export function ChatMessage({ data }: { data: OngoingChatMessage }) {
       </div>
       <div className="flex flex-col justify-center gap-1 grow">
         <p className="text-sm text-white/40">{format(data.timestamp, "HH:MM")}</p>
-        <p className="text-sm whitespace-pre-wrap break-normal">{formatMessage(data.message)}</p>
+        {data.role === Role.Loading ? (
+          <TypingIndicator />
+        ) : (
+          <p className="text-sm whitespace-pre-wrap break-normal">{formatMessage(data.message)}</p>
+        )}
       </div>
     </div>
   );
