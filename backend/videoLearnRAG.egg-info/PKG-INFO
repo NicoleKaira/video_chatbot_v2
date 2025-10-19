@@ -1,0 +1,31 @@
+Metadata-Version: 2.4
+Name: videoLearnRAG
+Version: 0.1.0
+Summary: LLM-based Learning Companion and Co-Pilot for lecture videos with RAG pipeline enhancements
+Author-email: Nicole Imatong <nicole.imatong@example.com>
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.8
+Requires-Dist: uvicorn>=0.34.0
+Requires-Dist: pymongo>=4.11.1
+Requires-Dist: python-dotenv>=1.0.1
+Requires-Dist: openai>=1.62.0
+Requires-Dist: langchain-text-splitters>=0.3.6
+Requires-Dist: langchain-community>=0.3.17
+Requires-Dist: langchain-openai>=0.3.6
+Requires-Dist: ragas>=0.2.13
+Requires-Dist: azure-ai-vision-imageanalysis>=1.0.0
+Requires-Dist: azure-identity>=1.20.0
+Requires-Dist: ffmpeg-python>=0.2.0
+Requires-Dist: ffmpegcv>=0.3.16
+Requires-Dist: datasets>=3.3.1
+Requires-Dist: bcrypt>=4.3.0
+Requires-Dist: requests>=2.32.3
+Requires-Dist: schedule>=1.2.2
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.18.0; extra == "dev"
+Requires-Dist: black>=22.0; extra == "dev"
+Requires-Dist: flake8>=4.0; extra == "dev"
+Requires-Dist: mypy>=0.950; extra == "dev"

@@ -1,0 +1,7 @@
+pyproject.toml
+videoLearnRAG.egg-info/PKG-INFO
+videoLearnRAG.egg-info/SOURCES.txt
+videoLearnRAG.egg-info/dependency_links.txt
+videoLearnRAG.egg-info/entry_points.txt
+videoLearnRAG.egg-info/requires.txt
+videoLearnRAG.egg-info/top_level.txt

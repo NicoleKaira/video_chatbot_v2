@@ -10,10 +10,10 @@ from langchain_community.vectorstores.azure_cosmos_db import CosmosDBSimilarityT
 from langchain_core.documents import Document
 from sqlalchemy.testing.suite.test_reflection import metadata
 
-from EmbeddingService import EmbeddingService
-from databaseservice.databaseService import DatabaseService, database_service
-from loggingConfig import logger
-from utils import timestamp_to_seconds
+from videoLearnRAG.EmbeddingService import EmbeddingService
+from videoLearnRAG.databaseservice.databaseService import DatabaseService, database_service
+from videoLearnRAG.loggingConfig import logger
+from videoLearnRAG.utils import timestamp_to_seconds
 from langchain_community.vectorstores import AzureCosmosDBVectorSearch
 from langchain_openai import AzureOpenAIEmbeddings
 

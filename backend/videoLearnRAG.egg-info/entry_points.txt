@@ -1,0 +1,2 @@
+[console_scripts]
+videoLearnRAG = videoLearnRAG.cli:main

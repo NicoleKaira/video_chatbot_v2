@@ -12,11 +12,11 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from openai import AsyncAzureOpenAI
 
-from chatservice.repository import ChatDatabaseService
-from chatservice.model import ChatHistory, LLMIsTemporalResponse
-from chatservice.utils import weighted_reciprocal_rank
-from loggingConfig import logger
-from utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds, get_prompt_preQrag, get_prompt_preQrag_temporal
+from videoLearnRAG.chatservice.repository import ChatDatabaseService
+from videoLearnRAG.chatservice.model import ChatHistory, LLMIsTemporalResponse
+from videoLearnRAG.chatservice.utils import weighted_reciprocal_rank
+from videoLearnRAG.loggingConfig import logger
+from videoLearnRAG.utils import process_file, get_prompt_template, get_prompt_template_naive, prompt_template_test, get_prompt_temporal_question, timestamp_to_seconds, get_prompt_preQrag, get_prompt_preQrag_temporal
 
 load_dotenv()
 
