@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useContext} from "react";
+import React from "react";
 
 import {FileVideo , BookCheck, Upload, BotMessageSquare} from "lucide-react"
 
@@ -8,7 +8,6 @@ import { ThumbnailSkeleton } from "@/components/thumbnail";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import {useSidebar} from "@/store/use-sidebar";
-import AuthContext from "@/hooks/auth";
 
 // Menu items.
 const items = [
@@ -35,25 +34,38 @@ const items = [
 ]
 
 export function ManageActions() {
-  const { user } = useContext(AuthContext);
   const { collapsed } = useSidebar((state) => state);
-  const role = user?.role ?? "";
 
   return (
     <div>
-      {!collapsed && role === "ADMIN" && (
+      {!collapsed && (
         <ul style={{listStyle: 'none', padding: 0}}>
           {items.map((item, index) => (
             <li
               key={index}
-              className={"flex space-x-4 p-5"}
+              className={"flex items-center space-x-4 p-5 hover:bg-accent rounded-lg cursor-pointer transition-colors"}
             >
-              <item.icon />
+              <item.icon className="w-5 h-5" />
               <Link
                 href={item.url}
-                className={"flex"}
+                className={"flex text-sm font-medium hover:text-primary"}
               >
                 {item.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {collapsed && (
+        <ul style={{listStyle: 'none', padding: 0}}>
+          {items.map((item, index) => (
+            <li
+              key={index}
+              className={"flex items-center justify-center p-5 hover:bg-accent rounded-lg cursor-pointer transition-colors"}
+              title={item.title}
+            >
+              <Link href={item.url}>
+                <item.icon className="w-5 h-5" />
               </Link>
             </li>
           ))}

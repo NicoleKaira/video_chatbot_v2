@@ -1,21 +1,17 @@
 "use client";
 
-import React, {useContext} from "react";
+import React from "react";
 import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react";
 
 import { useSidebar } from "@/store/use-sidebar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Hint } from "@/components/hint";
-import AuthContext from "@/hooks/auth";
 
 export function Toggle() {
   const { collapsed, onExpand, onCollapse } = useSidebar((state) => state);
-  const { user } = useContext(AuthContext);
 
   const label = collapsed ? "Expand" : "Collapse";
-
-  if (!user) return null;
 
   return (
     <>

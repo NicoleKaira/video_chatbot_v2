@@ -1,6 +1,6 @@
 "use client"
 
-import ProtectedRoute from "@/hooks/protected-route"
+// Authentication disabled - no protected routes
 
 export default function ManageLayout({
                                        children,
@@ -8,8 +8,8 @@ export default function ManageLayout({
   children: React.ReactNode
 }) {
   return (
-    <ProtectedRoute>
+    <>
       {children}
-    </ProtectedRoute>
+    </>
   )
 }
