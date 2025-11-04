@@ -126,7 +126,7 @@ export default function ChatPage() {
   }, [courses, selectedCourseCode]);
 
   const courseVideos: (Video & { courseName: string })[] = useMemo(() => {
-    if (!currentCourse) return [] as any;
+    if (!currentCourse || !currentCourse.courseVideos) return [] as any;
     return currentCourse.courseVideos.map((v) => ({ ...v, courseName: currentCourse.courseName }));
   }, [currentCourse]);
 
@@ -272,36 +272,13 @@ export default function ChatPage() {
     );
   }
 
-  // Show empty state if selected course has no videos
-  if (!isLoadingCourses && currentCourse && courseVideos.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] w-full p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Upload className="w-16 h-16 text-muted-foreground" />
-            </div>
-            <CardTitle className="text-2xl">No Videos Found</CardTitle>
-            <CardDescription className="text-base mt-2">
-              The selected course "{currentCourse.courseName}" has no videos. You need to upload videos before you can use the chat feature.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              onClick={() => router.push("/manage/upload")}
-              className="w-full"
-              size="lg"
-            >
-              Go to Upload Page
-            </Button>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              Upload videos first to enable the chat feature.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Check if selected course has no videos
+  const hasNoVideos = !isLoadingCourses && 
+                      selectedCourseCode && 
+                      selectedCourseCode !== "" &&
+                      currentCourse && 
+                      Array.isArray(currentCourse.courseVideos) &&
+                      currentCourse.courseVideos.length === 0;
 
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full flex-col gap-4 p-4 md:px-8">
@@ -309,22 +286,57 @@ export default function ChatPage() {
         <div className="flex items-center gap-2">
           <label className="text-sm font-bold">Course</label>
           <select
-            className="border rounded px-2 py-1"
-            value={selectedCourseCode}
-              onChange={(e) => {
-                setSelectedCourseCode(e.target.value);
-                setSelectedVideos([]);
-                setSelectedChatVideos([]);
-              }}
+            className="border rounded px-2 py-1 bg-white text-black"
+            value={selectedCourseCode || ""}
+            onChange={(e) => {
+              setSelectedCourseCode(e.target.value);
+              setSelectedVideos([]);
+              setSelectedChatVideos([]);
+            }}
+            disabled={isLoadingCourses}
           >
+            <option value="">Select a course...</option>
             {courses.map((c) => (
-              <option key={c.courseCode} value={c.courseCode}>{c.courseCode} — {c.courseName}</option>
+              <option key={c.courseCode} value={c.courseCode}>
+                {c.courseCode} — {c.courseName}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      <div className="grid h-full gap-4 md:grid-cols-5 md:grid-rows-1">
+      {/* Show upload prompt if selected course has no videos */}
+      {hasNoVideos && (
+        <div className="flex items-center justify-center flex-1">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <Upload className="w-16 h-16 text-muted-foreground" />
+              </div>
+              <CardTitle className="text-2xl">No Videos Found</CardTitle>
+              <CardDescription className="text-base mt-2">
+                The selected course "{currentCourse.courseName}" has no videos. You need to upload videos before you can use the chat feature.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                onClick={() => router.push("/manage/upload")}
+                className="w-full"
+                size="lg"
+              >
+                Go to Upload Page
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Upload videos first to enable the chat feature.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Show chatbot interface if course is selected and has videos */}
+      {!hasNoVideos && selectedCourseCode && (
+        <div className="grid h-full gap-4 md:grid-cols-5 md:grid-rows-1">
         {/* Panel 1: Course selector + scrollable videos list */}
         <Card className="p-4 flex flex-col md:col-span-1">
           <div className="mb-4">
@@ -539,7 +551,22 @@ export default function ChatPage() {
             </div>
           </div>
         </Card>
-      </div>
+        </div>
+      )}
+
+      {/* Show message when no course is selected */}
+      {!selectedCourseCode && !hasNoVideos && (
+        <div className="flex items-center justify-center flex-1">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Select a Course</CardTitle>
+              <CardDescription className="text-base mt-2">
+                Please select a course from the dropdown above to start using the chat feature.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
