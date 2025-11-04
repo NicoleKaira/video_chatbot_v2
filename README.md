@@ -93,6 +93,7 @@ Go to the frontend Folder:
 
 Download next (if you have not):
 ```npm i next```
+```npm install``` 
 
 Run the program:
 ```npm run dev```

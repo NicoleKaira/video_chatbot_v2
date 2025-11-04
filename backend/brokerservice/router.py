@@ -145,3 +145,31 @@ def add_course(body: CourseDetails):
     except Exception as e:
         logger.info("Error at /course: " + str(e))
         return JSONResponse(status_code=500, content={"message": "Error adding Course"})
+
+@router.delete("/course")
+def delete_course(course_code: str):
+    """
+    Deletes a course from the system.
+    
+    This endpoint allows administrators to delete a course by its course code.
+    The course and its associated data will be removed from the system.
+    
+    Args:
+        course_code (str): Course code to delete (query parameter)
+        
+    Returns:
+        dict: Success message if course was deleted successfully,
+              or error message if deletion fails
+        
+    Raises:
+        HTTPException: Returns 500 status if course deletion fails
+    """
+    try:
+        result = broker_service.delete_course(course_code)
+        if result:
+            return {"message": "Successfully Deleted Course"}
+        else:
+            return JSONResponse(status_code=404, content={"message": "Course not found"})
+    except Exception as e:
+        logger.info("Error at DELETE /course: " + str(e))
+        raise HTTPException(status_code=500, detail="Error deleting Course")

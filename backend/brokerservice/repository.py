@@ -257,6 +257,29 @@ class BrokerRepository:
             logger.info("Error when adding course: " + str(e))
             return
 
+    def delete_course(self, course_code: str):
+        """
+        Delete a course from the database by course code.
+        
+        Args:
+            course_code (str): Course Code to delete. Required.
+            
+        Returns:
+            bool: True if course was deleted successfully, False otherwise
+        """
+        try:
+            filter_query = {"course_code": course_code}
+            result = self.course.delete_one(filter_query)
+            if result.deleted_count > 0:
+                logger.info("Course deleted successfully for Course Code: " + str(course_code))
+                return True
+            else:
+                logger.info("No Course Document found for Course Code: " + str(course_code))
+                return False
+        except Exception as e:
+            logger.info("Error when deleting course: " + str(e))
+            raise e
+
 
 # # nicole added for mutlidocs Standalone function for easy access
 # def retrieve_all_video_id(course_code: str) -> dict:

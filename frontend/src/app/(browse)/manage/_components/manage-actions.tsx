@@ -12,11 +12,6 @@ import {useSidebar} from "@/store/use-sidebar";
 // Menu items.
 const items = [
   {
-    title: "Video",
-    url: "/manage",
-    icon: FileVideo ,
-  },
-  {
     title: "Course",
     url: "/manage/course",
     icon: BookCheck ,
@@ -25,6 +20,11 @@ const items = [
     title: "Upload",
     url: "/manage/upload",
     icon: Upload ,
+  },
+  {
+    title: "Video",
+    url: "/manage",
+    icon: FileVideo ,
   },
   {
     title: "Chat",

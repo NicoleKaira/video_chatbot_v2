@@ -17,9 +17,10 @@ import React, {useState} from "react";
 import {Textarea} from "@/components/ui/textarea";
 import {CourseDetails} from "@/model/Course";
 import courseChange from "@/api/course-update"
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {router} from "next/client";
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {useRouter} from "next/navigation";
 import deleteCourse from "@/api/delete-course";
+import {toast} from "sonner";
 
 const formSchema = z.object({
   courseCode: z.string().min(1, "Course Code is required"),
@@ -49,6 +50,8 @@ export default function CourseDetailForm(course: CourseDetails) {
 
   const [isEditable, setIsEditable] = useState(false); // State to toggle edit mode
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   const onSubmit = async (data: formCourseSchema) => {
     await courseChange.triggerCourseUpdate(data);
@@ -63,9 +66,20 @@ export default function CourseDetailForm(course: CourseDetails) {
     }
   };
 
-  const handleDelete = () => {
-    deleteCourse.deleteCourse(course.courseCode)
-    router.push(`manage/`);
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteCourse.deleteCourse(course.courseCode);
+      toast.success("Course deleted successfully");
+      setDialogOpen(false);
+      router.push(`/manage/course`);
+    } catch (error: any) {
+      console.error("Failed to delete course:", error);
+      const errorMessage = error?.response?.data?.message || "Failed to delete course. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const openDialog = () => {
@@ -149,10 +163,26 @@ export default function CourseDetailForm(course: CourseDetails) {
           <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Are you sure you want to delete the course?</DialogTitle>
+                <DialogTitle>Delete Course</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete "{course.courseName}"? This action cannot be undone and will delete all associated videos and data.
+                </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button onClick={handleDelete} type="submit" variant={"destructive"}>Yes</Button>
+                <Button 
+                  onClick={() => setDialogOpen(false)} 
+                  variant="outline"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleDelete} 
+                  variant={"destructive"}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete Course"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

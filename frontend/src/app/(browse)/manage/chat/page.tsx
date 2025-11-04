@@ -3,11 +3,13 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Thumbnail } from "@/components/thumbnail";
 import { getManageStreams } from "@/api/feed-service-manage";
 import video_api from "@/api/video-indexer-widget";
 import { Course, Video } from "@/model/Course";
+import { BookCheck, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type ChatMessage = {
   id: string;
@@ -46,6 +48,7 @@ const TypingIndicator = () => {
 };
 
 export default function ChatPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: generateId(),
@@ -58,6 +61,7 @@ export default function ChatPage() {
   const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || "";
   // Course and videos state
   const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const [selectedCourseCode, setSelectedCourseCode] = useState<string>("");
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]); // up to 2 ids for display
   const [selectedChatVideos, setSelectedChatVideos] = useState<string[]>([]); // all videos for chat context
@@ -76,14 +80,18 @@ export default function ChatPage() {
   useEffect(() => {
     const loadCourses = async () => {
       try {
+        setIsLoadingCourses(true);
         const data = await getManageStreams();
-        setCourses(data);
+        setCourses(data || []);
         // default to first course if exists
         if (data && data.length > 0) {
           setSelectedCourseCode((prev) => prev || data[0].courseCode);
         }
       } catch (e) {
         console.error("Failed to load courses", e);
+        setCourses([]);
+      } finally {
+        setIsLoadingCourses(false);
       }
     };
     loadCourses();
@@ -155,6 +163,10 @@ export default function ChatPage() {
   //sending the message 
   const sendMessage = async () => {
     if (!canSend) return; // no empty messages
+    if (!courseVideos || courseVideos.length === 0) {
+      // Prevent sending if no videos
+      return;
+    }
 
     const userMsg: ChatMessage = {
       id: generateId(),
@@ -228,6 +240,68 @@ export default function ChatPage() {
       sendMessage();
     }
   };
+
+  // Show empty state if no courses exist
+  if (!isLoadingCourses && (!courses || courses.length === 0)) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] w-full p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <BookCheck className="w-16 h-16 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-2xl">No Courses Found</CardTitle>
+            <CardDescription className="text-base mt-2">
+              You need to create a course before you can use the chat feature. Please add a course first.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => router.push("/manage/course")}
+              className="w-full"
+              size="lg"
+            >
+              Go to Course Page
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Once you create a course and upload videos, you can return here to chat about your content.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show empty state if selected course has no videos
+  if (!isLoadingCourses && currentCourse && courseVideos.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] w-full p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Upload className="w-16 h-16 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-2xl">No Videos Found</CardTitle>
+            <CardDescription className="text-base mt-2">
+              The selected course "{currentCourse.courseName}" has no videos. You need to upload videos before you can use the chat feature.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => router.push("/manage/upload")}
+              className="w-full"
+              size="lg"
+            >
+              Go to Upload Page
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Upload videos first to enable the chat feature.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full flex-col gap-4 p-4 md:px-8">

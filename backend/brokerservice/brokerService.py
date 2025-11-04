@@ -117,4 +117,13 @@ class BrokerService:
     def add_course(self, course_code, course_name, course_description):
         self.broker_db.add_course(course_code, course_name, course_description)
         return
+
+    def delete_course(self, course_code: str):
+        """
+        Delete a course from the system.
+        
+        Args:
+            course_code (str): Course Code to delete
+        """
+        return self.broker_db.delete_course(course_code)
     
