@@ -2,7 +2,7 @@
 
 ## Project Links 🔗
 
-- 📹 Set Up Video
+- 📹 Set Up Video [https://youtu.be/34kGcjuj6Zw]
 - 📄 FYP Report
 - 📊 Presentation Slides
 
