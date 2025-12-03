@@ -2,8 +2,9 @@
 .idea
 .env
 
-evaluation_results.csv
-generated_prompt.txt
+
+Evaluation Results/
+src/VideoLearnRAG/
 
 */__pycache__/*
 __pycache__/*

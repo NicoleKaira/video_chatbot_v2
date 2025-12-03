@@ -67,9 +67,9 @@ class BrokerRepository:
         }
         result = self.video.update_one(filter_query, {"$set": new_fields})
         if result.matched_count > 0:
-            print("Video Document Thumbnail updated successfully.")
+            logger.info("Video Document Thumbnail updated successfully.")
         else:
-            print("No matching Video Document found.")
+            logger.info("No matching Video Document found.")
 
     def change_video_status(self, video_object_id: ObjectId, status_new: Status):
         filter_query = {"_id": video_object_id}
@@ -144,30 +144,30 @@ class BrokerRepository:
         visibility_update = {"visibility": visibility}
         result = self.course.update_one(filter_query, {"$set": visibility_update})
         if result.matched_count > 0:
-            print("Course Document Visibility updated successfully.")
+            logger.info("Course Document Visibility updated successfully.")
             return result.upserted_id
         else:
-            print("No matching document found.")
+            logger.info("No matching document found.")
 
     def update_visibility_option_video(self, video_id, visibility):
         filter_query = {"video_id": video_id}
         visibility_update = {"visibility": visibility}
         result = self.video.update_one(filter_query, {"$set": visibility_update})
         if result.matched_count > 0:
-            print("Video Document Visibility updated successfully.")
+            logger.info("Video Document Visibility updated successfully.")
             return result.upserted_id
         else:
-            print("No matching document found.")
+            logger.info("No matching document found.")
 
     def update_course_details(self, course_details: CourseDetails):
         filter_query = {"course_code": course_details.course_id}
         course_update = {"course_name": course_details.course_name, "summary": course_details.course_description}
         result = self.course.update_one(filter_query, {"$set": course_update})
         if result.matched_count > 0:
-            print("Course Document updated successfully for Course Code: ", course_details.course_id)
+            logger.info("Course Document updated successfully for Course Code: ", course_details.course_id)
             return result.upserted_id
         else:
-            print("No Course Document found for Course Code: ", course_details.course_id)
+            logger.info("No Course Document found for Course Code: ", course_details.course_id)
 
 
     def update_video_details(self, video: VideoDetails):
@@ -175,10 +175,10 @@ class BrokerRepository:
         video_update = {"name": video.video_name, "summary": video.video_description}
         result = self.video.update_one(filter_query, {"$set": video_update})
         if result.matched_count > 0:
-            print("Video Document updated successfully for Video ID: ", video.video_id)
+            logger.info("Video Document updated successfully for Video ID: ", video.video_id)
             return True
         else:
-            print("No Video Document found for Video Code: ", video.video_id)
+            logger.info("No Video Document found for Video Code: ", video.video_id)
             return False
 
     def get_course_videos(self):

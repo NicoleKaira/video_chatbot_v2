@@ -20,6 +20,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {getManageStreams} from "@/api/feed-service-manage";
 import {toast} from "sonner";
 import {Textarea} from "@/components/ui/textarea";
+import {LogViewer} from "@/components/log-viewer";
 
 const formSchema = z.object({
   courseCode: z.string().min(1, "Course Code is required"),
@@ -51,6 +52,7 @@ export default function UploadFile() {
 
   const [courses, setCourses] = useState<{ courseCode: string; courseName: string }[]>([]);
   const [selectedCourseName, setSelectedCourseName] = useState<string>("");
+  const [showLogs, setShowLogs] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -97,12 +99,18 @@ export default function UploadFile() {
   };
 
   const onSubmit = async (data: FormDataUpload) => {
+    setShowLogs(true); // Show log viewer when upload starts
     const status = await uploadVideo(data);
     if (status) {
       toast("Video successfully uploaded. Indexing might take a moment.")
     } else {
       toast("Video upload failed. Please contact an administrator.")
+      setShowLogs(false); // Hide logs on failure
     }
+  };
+
+  const handleLogComplete = () => {
+    toast("Video indexing completed successfully!");
   };
 
   return (
@@ -233,6 +241,7 @@ export default function UploadFile() {
     <Button type="submit" variant={"primary"} className={"flex w-full"}>Submit</Button>
   </div>
 </form>
+      <LogViewer isActive={showLogs} onComplete={handleLogComplete} />
 </Form>
 )
   ;

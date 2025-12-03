@@ -1,6 +1,6 @@
-# CCDS24-0653 Final Year Project
+#  CCDS24-1273 Final Year Project
 
-## LLM-based Learning Companion & Co-Pilot - A Video to Text Approach 
+## LLM-based Learning Companion & Co-Pilot - A Video to Text Approach (Gen2)
 
 ### Set Up Guide
 
@@ -60,6 +60,14 @@ Environment Variables:
 - ```DB_NAME=<Database Name>```
   -  Can be any name
 
+ Access  useing  compass
+  - Download compass here: https://www.mongodb.com/try/download/compass
+  - Add a new connection 
+  - connect using the <Connection String> that was used in azure. 
+  - create a database called fypdatabase
+  - Create the following collections in the database: course, prompt_content_clean, prompt_content_index,   prompt_content_raw, transcript_full, video, video_indexer_raw
+
+
 
 ##### Start Up
 
@@ -99,9 +107,9 @@ Run the program:
 ```npm run dev```
 
 ***
-#### Deployment
+### Make sure you have Azure CLI installed to be able to use the AZURE services
 
-Make sure you have Azure CLI installed
+Download Azure SDK here: https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli-interactively?view=azure-cli-latest  
 
 Go to the backend Folder:
 ```cd backend```
@@ -109,21 +117,6 @@ Go to the backend Folder:
 Login to Azure:
 ```az login```
 
-Deploy your code:
-```az webapp up --runtime PYTHON:3.12 --sku B1 --logs```
-- use ```--sku F1``` to use free version of Azure Web Service
-- use ```PYTHON:<version>``` to change version
+***
+### Download a video using the video_Download.py
 
-Configure Start Up Script:
-- Go to Web App resource|Settings|Configuration
-- ```
-  pip install -r requirements.txt 
-  gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 main:app
-  ```
-
-Add Environment Variables:
-- Go to Web App resource|Settings|Environment variables
-- Add environment variables in .env
-
-*Useful links*:
-- [Quickstart: Deploy a Python (Django, Flask, or FastAPI) web app to Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/quickstart-python?tabs=flask%2Cwindows%2Cazure-portal%2Cazure-cli-deploy%2Cdeploy-instructions-azportal%2Cterminal-bash%2Cdeploy-instructions-zip-azcli)

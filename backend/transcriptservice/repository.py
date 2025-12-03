@@ -86,7 +86,7 @@ class TranscriptRepositoryService:
             print("No matching document found for Video ID: " + str(video_reference_id))
 
     def insert_prompt_context_index(self, prompt_content_raw, video_id):
-        print(prompt_content_raw)
+        # print(prompt_content_raw)
         formatted_documents = [Document(
             page_content=doc["content"],
             metadata={
@@ -96,7 +96,7 @@ class TranscriptRepositoryService:
             }
         ) for doc in prompt_content_raw["result"]["sections"]]
 
-        print(formatted_documents)
+        # print(formatted_documents)
 
         AzureCosmosDBVectorSearch.from_documents(
             formatted_documents,
@@ -104,7 +104,7 @@ class TranscriptRepositoryService:
             collection=self.prompt_collection_clean_collection,
             index_name="test",
         )
-        print("Successfully inserted")
+        print("Successfully inserted raw transcript to database")
 
     def find_transcript_by_video_reference_id(self, video_object_id: ObjectId):
         return self.transcript_collection.find_one({"video_reference_id": video_object_id})

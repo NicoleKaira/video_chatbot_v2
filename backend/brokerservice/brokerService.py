@@ -47,11 +47,11 @@ class BrokerService:
             videos = video_list.video 
             for video in videos:
                 video_object_id = ObjectId(video.video_id)
-                print(video_object_id) #video document video_id from mongodb 
                 try:
-                    print("starting...")
+                    logger.info("starting video indexing process for video: " + video.video_name)
                     #nicole change this part
                     video_id, insights = self.video_indexer_service.index_video(video)
+                    
                     # print("done with the index video function, returning back to main")
                     #nicole addition:
                     # video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="3qkbj4qznk")
@@ -70,8 +70,11 @@ class BrokerService:
                     self.transcript_service.map_insights_to_transcript(insights, video_object_id)
                     self.transcript_service.trigger_transcript_cleaning(video_object_id, course, video.video_description)
                     self.transcript_service.update_prompt_with_clean_transcript(video_object_id, video_id)
-                    print("Completed Video Indexing Process for ID: ", video_object_id)
+                    logger.info("Completed transcript cleaning process for video: " + video.video_name)
+                    
+                    logger.info("Completed Video Indexing Process for ID: ", video_object_id)
                     self.broker_db.change_video_status(video_object_id, Status.COMPLETED)
+                    
                 except Exception as e:
                     self.broker_db.change_video_status(video_object_id, Status.ERROR)
                     print(e)

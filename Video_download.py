@@ -80,39 +80,5 @@ print("\n Download completed! Check the current directory for the video file.")
 
 
 
-# =============================================================================
-# OLD APPROACH (COMMENTED OUT) - Using pytubefix
-# =============================================================================
-# This section shows the previous method using pytubefix library
-# It manually separates video and audio streams, then merges with FFmpeg
-# 
-# from pytubefix import YouTube
-# from pytubefix.cli import on_progress
-# import os
-# 
-# # YouTube video URL to download
-# url = "https://www.youtube.com/live/Z_T09vQpl00?si=QyCTA2BGhEl2ZZaE"
-# yt = YouTube(url, on_progress_callback=on_progress)
-# 
-# print("Title:", yt.title)
-# 
-# # Download best high-resolution video-only stream
-# video_stream = yt.streams.filter(adaptive=True, only_video=True, file_extension='mp4').order_by('resolution').desc().first()
-# video_path = video_stream.download(filename='temp_video.mp4')
-# print("Video downloaded:", video_path)
-# 
-# # Download best audio-only stream
-# audio_stream = yt.streams.filter(adaptive=True, only_audio=True, file_extension='mp4').order_by('abr').desc().first()
-# audio_path = audio_stream.download(filename='temp_audio.mp4')
-# print("Audio downloaded:", audio_path)
-# 
-# # Merge using FFmpeg (requires ffmpeg installed and added to PATH)
-# output_path = "highres_output.mp4"
-# os.system(f'ffmpeg -y -i "{video_path}" -i "{audio_path}" -c:v copy -c:a aac -strict experimental "{output_path}"')
-# 
-# print("\n Done! High-resolution video saved as:", output_path)
-# 
-# # Clean up temporary files (optional)
-# # os.remove(video_path)
-# # os.remove(audio_path)
+
 

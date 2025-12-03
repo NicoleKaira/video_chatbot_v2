@@ -78,7 +78,7 @@ class VideoIndexerClient:
         response.raise_for_status()
 
         self.account = response.json()
-        logger.info(f'[Account Details] Id:{self.account["properties"]["accountId"]}, Location: {self.account["location"]}')
+        print(f'[Account Details] Id:{self.account["properties"]["accountId"]}, Location: {self.account["location"]}')
 
     def file_upload_async(self, media: BytesIO, video_name:Optional[str]=None, excluded_ai:Optional[list[str]]=None,
                           video_description:str='', privacy='private', partition='') -> str:
@@ -116,7 +116,7 @@ class VideoIndexerClient:
         if len(excluded_ai) > 0:
             params['excludedAI'] = excluded_ai
 
-        logger.info('Uploading a local file using multipart/form-data post request..')
+        logger.info("Uploading a local file using multipart/form-data post request.." )
 
         response = requests.post(url, params=params, files={'file': media})
 
@@ -145,7 +145,7 @@ class VideoIndexerClient:
         url = f'{self.consts.ApiEndpoint}/{self.account["location"]}/Accounts/{self.account["properties"]["accountId"]}/' + \
             f'Videos/{video_id}/Index'
 
-        print(f'Checking if video {video_id} has finished indexing...')
+        logger.info(f'Checking if video {video_id} has finished indexing...')
         processing = True
         start_time = time.time()
         while processing:
@@ -166,17 +166,17 @@ class VideoIndexerClient:
 
             if video_state == 'Processed':
                 processing = False
-                print(f'The video index has completed. Here is the full JSON of the index for video ID {video_id}: \n{video_result}')
+                logger.info(f'The video index has completed. Here is the full JSON of the index for video ID {video_id}: \n{video_result}')
                 break
             elif video_state == 'Failed':
                 processing = False
-                print(f"The video index failed for video ID {video_id}.")
+                logger.info(f"The video index failed for video ID {video_id}.")
                 break
 
-            print(f'[{time.strftime("%Y-%m-%d %H:%M:%S")}] The video index state is {video_state}')
+            logger.info(f'[{time.strftime("%Y-%m-%d %H:%M:%S")}] The video index state is {video_state}')
 
             if timeout_sec is not None and time.time() - start_time > timeout_sec:
-                print(f'Timeout of {timeout_sec} seconds reached. Exiting...')
+                logger.info(f'Timeout of {timeout_sec} seconds reached. Exiting...')
                 break
 
             time.sleep(10) # wait 10 seconds before checking again
@@ -298,7 +298,7 @@ class VideoIndexerClient:
         if check_alreay_exists:
             prompt_content = self.get_prompt_content_async(video_id, raise_on_not_found=False)
             if prompt_content is not None:
-                print(f'Prompt content already exists for video ID {video_id}.')
+                logger.info(f'Prompt content already exists for video ID {video_id}.')
                 return prompt_content
 
         self.generate_prompt_content_async(video_id)
@@ -309,10 +309,10 @@ class VideoIndexerClient:
             prompt_content = self.get_prompt_content_async(video_id, raise_on_not_found=False)
 
             if timeout_sec is not None and time.time() - start_time > timeout_sec:
-                print(f'Timeout of {timeout_sec} seconds reached. Exiting...')
+                logger.info(f'Timeout of {timeout_sec} seconds reached. Exiting...')
                 break
 
-            print('Prompt content is not ready yet. Waiting 5 seconds before checking again...')
+            logger.info('Prompt content is not ready yet. Waiting 5 seconds before checking again...')
             time.sleep(10)
 
         return prompt_content
@@ -395,7 +395,7 @@ class VideoIndexerClient:
                                                                   permission_type='Contributor', scope='Video',
                                                                   video_id=video_id)
 
-        print(f'Getting thumbnail for video {video_id}')
+        logger.info(f'Getting thumbnail for video {video_id}')
 
         params = {
             'accessToken': video_scope_access_token
