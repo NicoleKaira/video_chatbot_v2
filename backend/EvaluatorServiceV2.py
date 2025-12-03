@@ -142,9 +142,6 @@ class EvaluatorService:
     # ]
 
 
-
-
-
     async def get_dataset(self, video_id):
         results = []  # This will store the results for all questions
 
@@ -316,70 +313,6 @@ class EvaluatorService:
         with open("evaluation_results_t.json", mode='w', newline='') as jsonfile:
             json.dump(results, jsonfile, indent=4)
 
-    #nicoles below
-    async def get_dataset_t_with_llm(self, video_id):
-        results = []  # This will store the results for all questions
-        
-        for i in range(len(self.time_sensitive_questions)):
-           
-            start_time = time.time()
-            
-            question = self.time_sensitive_questions[i]
-            # Step 1: Check if the question is temporal
-            is_temporal_res = await self.chat_service.is_temporal_question(question)
-            is_temporal = is_temporal_res.is_temporal
-            timestamp = is_temporal_res.timestamp
-
-            context = []
-            answer = ""
-
-            if is_temporal:
-                if timestamp:
-                    # Step 3: Retrieve chunks based on the timestamp
-                    retrieval_results, context = self.chat_service.retrieve_chunks_by_timestamp(video_id, timestamp)
-                    answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
-                else:
-                    # fallback if timestamp not extractable
-                    retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, question)
-                    answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
-            else:
-                retrieval_results, context = self.chat_service.retrieve_results_prompt_clean(video_id, question)
-                answer = self.chat_service.generate_video_prompt_response(retrieval_results, question)
-            
-
-            
-            # Evaluate metrics
-            context_precision = await self.evaluate_context_precision(self.time_sensitive_questions[i], self.time_sensitive_answers[i], context)
-            response_relevancy = await self.evaluate_response_relevancy(self.time_sensitive_questions[i], answer, context)
-            faithfulness_result = await self.evaluate_faithfulness(self.time_sensitive_questions[i], answer, context)
-            context_recall = await self.evaluate_context_recall(self.time_sensitive_questions[i], answer, self.time_sensitive_answers[i],
-                                                                context)
-
-            end_time = time.time()
-            time_taken = end_time - start_time
-
-            # # Store the results for this question in a dictionary
-            result = {
-                'question': self.time_sensitive_questions[i],
-                'ground_truth': self.time_sensitive_answers[i],
-                'context': context,
-                'answer': answer,
-                'context_precision': context_precision,
-                'response_relevancy': response_relevancy,
-                'faithfulness_result': faithfulness_result,
-                'context_recall': context_recall,
-                'temporal_information': is_temporal_res.dict(),  # Convert to dict for JSON serialization
-                'time_taken': time_taken
-            }
-
-            results.append(result)
-            print("Iteration " + str(i) + " took " + str(time_taken) + " seconds")
-
-        with open("evaluation_results_t_with_llm.json", mode='w', newline='') as jsonfile:
-            json.dump(results, jsonfile, indent=4)
-
-    #Nicole^
-
     async def get_dataset_pre_t(self, video_id):
         results = []  # This will store the results for all questions
 
@@ -539,20 +472,19 @@ async def main():
     video_id = "zwb6lqhpzl"
     print ("hei3", video_id)
 
-    # evaluator_service = EvaluatorService(chat_service=service)
-    #await evaluator_service.get_dataset(video_id=video_id)
+    evaluator_service = EvaluatorService(chat_service=service)
+    await evaluator_service.get_dataset(video_id=video_id)
     # await evaluator_service.get_dataset_pre(video_id=video_id)
     # await evaluator_service.get_dataset_naive(video_id=video_id)
     # await evaluator_service.get_dataset_clean_naive(video_id=video_id)
 
-    evaluator_service = EvaluatorService(chat_service=service)
+    # evaluator_service = EvaluatorService(chat_service=service)
     # await evaluator_service.get_dataset_t(video_id=video_id) #this is the non temporal pipeline that i used!
     # await evaluator_service.get_dataset_pre_t(video_id=video_id)
     # await evaluator_service.get_dataset_naive_t(video_id=video_id)
     # await evaluator_service.get_dataset_clean_naive_t(video_id=video_id)
 
-    #nicole temporal
-    await evaluator_service.get_dataset_t_with_llm(video_id=video_id)
+    
 
 
 

@@ -183,7 +183,7 @@ class ChatDatabaseService:
             return list(docs)
         
 
-    # nicole mutlivideo RAG4.0
+    # mutlivideo
     def retrieve_results_prompt_semantic_v2_multivid(self, video_ids: list, user_prompt: str):
         print(f"Input video_ids: {video_ids}, type: {type(video_ids)}")
         
@@ -257,7 +257,7 @@ class ChatDatabaseService:
             ).sort("score", -1)
             return list(docs)
         
-    #nicole mulitdocs RAG 4.0
+    #multivideo
     def retrieve_results_prompt_text_v2_multivid(self, video_ids, user_query):
         print(f"Input video_ids (text): {video_ids}, type: {type(video_ids)}")
         
@@ -316,8 +316,7 @@ class ChatDatabaseService:
         return retrieval_results, [doc['textContent'] for doc in docs_semantic]
 
 
-        #nicole added for temporal question retrieval
-    
+        
     
     def retrieve_chunks_by_timestamp(self, video_ids: list, timestamp: list):
         """
