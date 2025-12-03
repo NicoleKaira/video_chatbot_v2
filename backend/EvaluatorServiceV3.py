@@ -404,17 +404,17 @@ class EvaluatorService:
         with open("Ragv3_Temporal_only_results.json", mode='w', newline='') as jsonfile:
             json.dump(results, jsonfile, indent=4)
 
-# Generation 2 Testing - Document Scope Only
+# Generation 2 Testing - Document Scope(PreQRAG) Only
     async def Ragv3_preQRAG_only(self, course_code: str) -> None:
         """
         Evaluate multi-document questions using PreQRAG routing and LLM-based retrieval.
         
-        This function processes a set of multi-video questions, routes them using PreQRAG,
+        This function processes a set of multi-video questions, routes them using Document Scope(PreQRAG),
         retrieves relevant context, generates answers, and evaluates the performance
         using various metrics (context precision, response relevancy, faithfulness, context recall).
         
         
-        Expected PreQRAG Output Format:
+        Expected Document Scope(PreQRAG) Output Format:
         {
             "routing_type": "SINGLE_DOC" | "MULTI_DOC",
             "user_query": "original question",
@@ -450,12 +450,12 @@ class EvaluatorService:
             answers_template = self.answer_for_multivideos[i]
             
             try:
-                # Route question using PreQRAG
+                # Route question using Document Scope(PreQRAG)
                 json_results_llm = await self.chat_service.route_pre_qrag(
                     user_query=question, 
                     video_map=video_mapping
                 )
-                print(f"PreQRAG routing result for Question {i+1}:\n{json_results_llm}")
+                print(f"Document Scope(PreQRAG) routing result for Question {i+1}:\n{json_results_llm}")
                 
                 # Extract routing information
                 routing_type = json_results_llm.get("routing_type")
@@ -516,17 +516,17 @@ class EvaluatorService:
         
         return
 
-# Generation 2 Testing- Temporal and Document Scope
+# Generation 2 Testing- Temporal and Document Scope(PreQRAG)
     async def Ragv3_preQRAG_temporal(self, course_code: str) -> None:
         """
-        Evaluate multi-document questions using PreQRAG routing and LLM-based retrieval.
+        Evaluate multi-document questions using Doc Scope(PreQRAG) routing and LLM-based retrieval.
         
-        This function processes a set of multi-video questions, routes them using PreQRAG,
+        This function processes a set of multi-video questions, routes them using Document Scope(PreQRAG),
         retrieves relevant context, generates answers, and evaluates the performance
         using various metrics (context precision, response relevancy, faithfulness, context recall).
         
         
-        Expected PreQRAG Output Format:
+        Expected Document Scope(PreQRAG) Output Format:
         {
             "routing_type": "SINGLE_DOC" | "MULTI_DOC",
             "user_query": "original question",
@@ -562,7 +562,7 @@ class EvaluatorService:
             answers_template = self.answer_for_multivideos[i]
             
             try:
-                # Route question using PreQRAG
+                # Route question using Document Scope(PreQRAG)
                 json_results_llm = await self.chat_service.route_pre_qrag_temporal(
                     user_query=question, 
                     video_map=video_mapping
@@ -706,10 +706,10 @@ async def main():
     # RAGV3 with Temporal
     # await evaluator_service.Ragv3_Temporal_only(course_code="SC1007")
 
-    #RAGV3 with Document Scope Only
+    #RAGV3 with Document Scope(PreQRAG) Only
     # await evaluator_service.Ragv3_preQRAG_only(course_code="SC1007")  # Replace with your course code
 
-    #RAGV3 with Document Scope + Temporal (final generation 2 pipeline)
+    #RAGV3 with Document Scope(PreQRAG) + Temporal (final generation 2 pipeline)
     await evaluator_service.Ragv3_preQRAG_temporal(course_code="SC1007")  # Replace with your course code
 
 

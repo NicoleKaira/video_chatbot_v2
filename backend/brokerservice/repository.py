@@ -106,7 +106,7 @@ class BrokerRepository:
             return {}
         
     
-#nicole added for mutlidocs  (shifted the one used for the final in chatservice not from here alrady)
+# Used for evaluation
     def get_video_id_title_mapping(self, course_code: str) -> dict:
         """
         Retrieve a mapping of video names to video IDs for a given course.
@@ -137,7 +137,7 @@ class BrokerRepository:
                     video_map[video_name] = video_id
         
         return {"video_map": video_map}
-    #nicole added ^
+
 
     def update_visibility_option_course(self, course_id, visibility):
         filter_query = {"course_code": course_id}
@@ -281,17 +281,4 @@ class BrokerRepository:
             raise e
 
 
-# # nicole added for mutlidocs Standalone function for easy access
-# def retrieve_all_video_id(course_code: str) -> dict:
-#     """
-#     Standalone function to retrieve video ID and title mapping for a course.
-    
-#     Args:
-#         course_code (str): Course Code. Required.
-        
-#     Returns:
-#         dict: Mapping of video_id to video name.
-#     """
-#     broker_repo = BrokerRepository()
-#     return broker_repo.get_video_id_title_mapping(course_code)
         

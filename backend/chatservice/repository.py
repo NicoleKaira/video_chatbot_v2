@@ -183,7 +183,7 @@ class ChatDatabaseService:
             return list(docs)
         
 
-    # mutlivideo
+    # mutlivideo 
     def retrieve_results_prompt_semantic_v2_multivid(self, video_ids: list, user_prompt: str):
         print(f"Input video_ids: {video_ids}, type: {type(video_ids)}")
         

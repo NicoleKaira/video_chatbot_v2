@@ -33,31 +33,6 @@ class VideoService:
         self.database = VideoIndexerRepositoryService()
 
             
-    #nicole here!! without indexin
-    def index_video_without_indexing (self, video_id: str, excluded_ai: list=None) -> (str, dict):
-        """
-        Retrieve insights of a video already uploaded and indexed in video indexer
-
-        Args:
-            video_id (str): Video ID of the video needed to be fetched. Required.
-            excluded_ai (list): AI Features to excluded from Azure Video Indexer. Optional.
-        """
-        
-        insights = self.client.get_video_async(video_id)
-        with open(f"nicole_{video_id}.json", "w", encoding="utf-8") as f:
-            json.dump(insights, f, indent=4, ensure_ascii=False)
-
-        if insights and video_id:
-            document = {
-                "video_indexer_id": video_id,
-                "insights": insights
-            }
-            self.database.insert_video_index_raw(document)
-            return video_id, insights
-        else:
-            raise Exception("Indexing Video process failed.")
-    
-    #this one is the old one with frontend
     def index_video(self, video_base64_encoded: Video, excluded_ai: list=None) -> (str, dict):
         """
         Index Video using Azure AI Video Indexer.

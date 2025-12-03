@@ -43,35 +43,35 @@ class BrokerService:
             course = self.broker_db.check_if_course_exist(video_list.course_code)
             if course == {}:
                 raise Exception("Not a valid course Code: ", video_list.course_code)
-            video_list = self.register_video(video_list, course["_id"])  #this is creating a document in video collection in mongodb
+            video_list = self.register_video(video_list, course["_id"])
             videos = video_list.video 
             for video in videos:
                 video_object_id = ObjectId(video.video_id)
                 try:
                     logger.info("starting video indexing process for video: " + video.video_name)
-                    #nicole change this part
-                    video_id, insights = self.video_indexer_service.index_video(video)
-                    
-                    # print("done with the index video function, returning back to main")
-                    #nicole addition:
-                    # video_id, insights = self.video_indexer_service.index_video_without_indexing(video_id="3qkbj4qznk")
-                  
 
+                    # Start video indexing process in azure video indexer
+                    video_id, insights = self.video_indexer_service.index_video(video)
+                                    
                     #get thumbnail from video indexer
                     thumbnail_id = insights["summarizedInsights"]["thumbnailId"]
                     encoded_image = self.video_indexer_service.get_video_thumbnail(video_id, thumbnail_id)
                     self.broker_db.update_video_id_thumbnail(video_object_id, video_id, encoded_image)
-                    #get prompt content from video indexer and insert the raw data + video_id into mongodb under video_index_raw 
+
+                    # Get prompt content from video indexer and insert the raw data + video_id into mongodb under video_index_raw 
                     self.video_indexer_service.get_prompt_content(video_id)
+
                     #find_one the video_id and get the raw insights 
                     result = self.video_indexer_service.database.video_indexer_raw_collection.find_one({'video_indexer_id': video_id})
                     insights = result["insights"]
-                    #get the insights from ocr
+
+                    # Transcript cleaning process
                     self.transcript_service.map_insights_to_transcript(insights, video_object_id)
                     self.transcript_service.trigger_transcript_cleaning(video_object_id, course, video.video_description)
                     self.transcript_service.update_prompt_with_clean_transcript(video_object_id, video_id)
+
+                    # Video uploading, indexing and cleaning process completed
                     logger.info("Completed transcript cleaning process for video: " + video.video_name)
-                    
                     logger.info("Completed Video Indexing Process for ID: ", video_object_id)
                     self.broker_db.change_video_status(video_object_id, Status.COMPLETED)
                     

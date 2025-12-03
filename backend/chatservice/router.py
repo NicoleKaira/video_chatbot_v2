@@ -29,7 +29,7 @@ chat_service = ChatService()
 @router.post("/", status_code=200)
 async def evaluate_question(body: ChatRequestBody):
     """
-    Evaluate a single question using PreQRAG routing and multi-video retrieval.
+    Evaluate a single question using Document Scope(PreQRAG) routing and multi-video retrieval.
     """
     question = body.message
     video_ids = body.video_ids  # Get list of video IDs from request body
@@ -53,7 +53,7 @@ async def evaluate_question(body: ChatRequestBody):
             
     except Exception as e:
         print(f"Error processing question: {e}")
-        # Fallback to simple retrieval if PreQRAG fails
+        # Fallback to simple retrieval if Document Scope(PreQRAG) fails
         try:
             retrieval_results, _ = chat_service.retrieve_results_prompt_clean_multivid(video_ids, question)
             response = chat_service.generate_video_prompt_response(retrieval_results, question)

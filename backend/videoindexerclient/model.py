@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 class Video(BaseModel):
     video_name: str
-    #base64_encoded_video: str Nicole changed 
     base64_encoded_video: Optional[str] = None
     video_id: Optional[str] = None
     video_description: str

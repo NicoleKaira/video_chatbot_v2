@@ -213,7 +213,7 @@ def get_prompt_template_naive():
     **Your Answer:**
     """
 
-#nicole's function for temporal question check
+# Function for temporal question check
 def get_prompt_temporal_question():
     return """You are an assistant that specializes in analyzing questions about lecture videos.
 
@@ -259,7 +259,7 @@ Question: "{question}"
 """
 
 
-# preQRAG new
+# Doc Scope(PreQRAG) new
 def get_prompt_preQrag_temporal():
     return """
     SYSTEM ROLE:

@@ -65,7 +65,7 @@ class ChatService:
 
     async def query_evaluation(self, question: str, video_ids: list, course_code: str):
         """
-        Evaluate a single question using PreQRAG routing and multi-video retrieval.
+        Evaluate a single question using Doc Scope(PreQRAG) routing and multi-video retrieval.
         
         Args:
             question (str): The user's question
@@ -96,12 +96,12 @@ class ChatService:
                 video_mapping = full_video_mapping
                 print(f"Using all videos for course {course_code}: {video_mapping}")
             
-            # Step 2: Route question using PreQRAG
+            # Step 2: Route question using Doc Scope(PreQRAG)
             json_results_llm = await self.route_pre_qrag_temporal(
                 user_query=question, 
                 video_map=video_mapping
             )
-            print(f"PreQRAG routing result:\n{json_results_llm}")
+            print(f"Doc Scope(PreQRAG) routing result:\n{json_results_llm}")
             
             # Step 3: Extract routing information
             # routing_type = json_results_llm.get("routing_type")
@@ -138,10 +138,7 @@ class ChatService:
             print("something happened here")
             print(ex)
 
-    
-
-    
-    
+      
     def generate_video_prompt_response(self, retrieval_results, user_input, previous_messages=None):
         
         """
@@ -306,7 +303,7 @@ class ChatService:
             return False
          
 
-    # Document Scope router that takes user_query and video_map and returns structured JSON
+    # Document Scope(PreQRAG) router that takes user_query and video_map and returns structured JSON
     async def route_pre_qrag(self, user_query: str, video_map: list) -> dict:
         """
         Call LLM with the PRE-QRAG routing prompt, injecting the user query and the video map.
@@ -338,7 +335,7 @@ class ChatService:
         except Exception as e:
             print(f"[route_pre_qrag] Error: {e}")
             
-    # PreQRAG with Temporal checker
+    # Doc Scope(PreQRAG) with Temporal checker
     async def route_pre_qrag_temporal(self, user_query: str, video_map: list) -> dict:
         """
         Call LLM with the PRE-QRAG routing prompt, injecting the user query and the video map.
