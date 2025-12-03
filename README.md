@@ -209,12 +209,16 @@ python main.py
 ```bash
 cd frontend
 ```
+ADD THE ENV FILE FOR FRONTEND
 
 #### Step 2: Install Dependencies 📦
 
 ```bash
-npm install
+npm i next
 ```
+
+```bash
+npm install next react react-dom
 
 **Note:** If Next.js is not already installed, it will be installed as part of the dependencies.
 
