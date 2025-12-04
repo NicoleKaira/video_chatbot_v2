@@ -217,11 +217,6 @@ ADD THE ENV FILE FOR FRONTEND
 npm i next
 ```
 
-```bash
-npm install next react react-dom
-
-**Note:** If Next.js is not already installed, it will be installed as part of the dependencies.
-
 #### Step 3: Run the Development Server ▶️
 
 ```bash
