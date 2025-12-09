@@ -3,8 +3,9 @@
 ## Project Links 🔗
 
 - 📹 [Set Up Video](https://youtu.be/34kGcjuj6Zw)
+- 📄 [FYP Report Video-Enhanced Learning Companion & Co-Pilot, Video to Text Approach (2nd Gen)](https://github.com/NicoleKaira/video_chatbot_v2/blob/master/Submissions/FYP%20Report%20Video-Enhanced%20Learning%20Companion%20%26%20Co-Pilot%2C%20Video%20to%20Text%20Approach%20(2nd%20Gen).pdf)
 - 📊 [Presentation Slides](https://github.com/NicoleKaira/video_chatbot_v2/blob/master/Submissions/FYP%20Presentation.pptx)
-
+- 🎥 [Live Presentation](https://youtu.be/a3Pg-8DoZKI)
 ---
 
 ## Table of Contents 📑
