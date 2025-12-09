@@ -2,9 +2,8 @@
 
 ## Project Links 🔗
 
-- 📹 Set Up Video [https://youtu.be/34kGcjuj6Zw]
-- 📄 FYP Report
-- 📊 Presentation Slides
+- 📹 [Set Up Video](https://youtu.be/34kGcjuj6Zw)
+- 📊 [Presentation Slides](https://github.com/NicoleKaira/video_chatbot_v2/blob/master/Submissions/FYP%20Presentation.pptx)
 
 ---
 
