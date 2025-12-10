@@ -202,6 +202,16 @@ python main.py
 
 ---
 
+### EvaluatorServiceV3 Pipelines 🧪
+- `backend/EvaluatorServiceV3.py` evaluates four RAG pipelines: `Ragv3_only` (baseline), `Ragv3_Temporal_only`, `Ragv3_preQRAG_only` (document-scope PreQRAG), and `Ragv3_preQRAG_temporal`.
+- To run a pipeline:
+  1. `cd backend` (ensure the virtual environment and requirements are already set up).
+  2. Open `EvaluatorServiceV3.py` and uncomment the pipeline you want in the `main()` section (lines 703-714); comment out the others if needed.
+  3. Run `python EvaluatorServiceV3.py`.
+  4. Results are written as JSON files in the repo root (e.g., `Rag3only_results.json`, `Ragv3_Temporal_only_results.json`, `Ragv3_PreQRAG_only_results.json`, `Ragv3_PreQRAG_Temporal_only_results.json`).
+
+---
+
 ### Frontend Setup 🎨
 
 #### Step 1: Navigate to Frontend Directory 📁

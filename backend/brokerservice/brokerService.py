@@ -46,7 +46,9 @@ class BrokerService:
             video_list = self.register_video(video_list, course["_id"])
             videos = video_list.video 
             for video in videos:
-                video_object_id = ObjectId(video.video_id)
+                # video.video_id is already the MongoDB ObjectId returned in register_video;
+                # avoid re-wrapping it to prevent ObjectId constructor errors.
+                video_object_id = video.video_id if isinstance(video.video_id, ObjectId) else ObjectId(video.video_id)
                 try:
                     logger.info("starting video indexing process for video: " + video.video_name)
 
@@ -72,7 +74,7 @@ class BrokerService:
 
                     # Video uploading, indexing and cleaning process completed
                     logger.info("Completed transcript cleaning process for video: " + video.video_name)
-                    logger.info("Completed Video Indexing Process for ID: ", video_object_id)
+                    logger.info(f"Completed Video Indexing Process for ID: {video_object_id}")
                     self.broker_db.change_video_status(video_object_id, Status.COMPLETED)
                     
                 except Exception as e:

@@ -32,3 +32,62 @@
 2025-12-03 09:59:48,624: INFO: Course exist for Course Code: SC1007
 2025-12-03 10:01:42,080: INFO: Course exist for Course Code: SC1007
 2025-12-03 10:21:24,652: INFO: Course exist for Course Code: SC1007
+2025-12-10 19:08:39,985: INFO: Course exist for Course Code: sc1015
+2025-12-10 19:08:40,152: INFO: Document updated successfully for insert_video_indexing_progress.
+2025-12-10 19:08:40,162: INFO: Video Registration Completed for Course ID: 69284647ea1d34002da4d372
+2025-12-10 19:08:40,162: INFO: starting video indexing process for video: lecture 2
+2025-12-10 19:08:41,884: INFO: Uploading a local file using multipart/form-data post request..
+2025-12-10 19:08:52,358: INFO: Checking if video f5ob0wf8o9 has finished indexing...
+2025-12-10 19:08:53,486: INFO: [2025-12-10 19:08:53] The video index state is Processing
+2025-12-10 19:09:05,200: INFO: [2025-12-10 19:09:05] The video index state is Processing
+2025-12-10 19:09:16,197: INFO: [2025-12-10 19:09:16] The video index state is Processing
+2025-12-10 19:09:27,386: INFO: [2025-12-10 19:09:27] The video index state is Processing
+2025-12-10 19:09:38,435: INFO: [2025-12-10 19:09:38] The video index state is Processing
+2025-12-10 19:09:49,397: INFO: [2025-12-10 19:09:49] The video index state is Processing
+2025-12-10 19:10:00,541: INFO: [2025-12-10 19:10:00] The video index state is Processing
+2025-12-10 19:10:11,723: INFO: [2025-12-10 19:10:11] The video index state is Processing
+2025-12-10 19:10:23,040: INFO: [2025-12-10 19:10:23] The video index state is Processing
+2025-12-10 19:10:34,029: INFO: [2025-12-10 19:10:34] The video index state is Processing
+2025-12-10 19:10:44,989: INFO: [2025-12-10 19:10:44] The video index state is Processing
+2025-12-10 19:10:56,037: INFO: [2025-12-10 19:10:56] The video index state is Processing
+2025-12-10 19:11:06,997: INFO: [2025-12-10 19:11:06] The video index state is Processing
+2025-12-10 19:11:17,968: INFO: [2025-12-10 19:11:17] The video index state is Processing
+2025-12-10 19:11:28,971: INFO: [2025-12-10 19:11:28] The video index state is Processing
+2025-12-10 19:11:39,971: INFO: [2025-12-10 19:11:39] The video index state is Processing
+2025-12-10 19:11:50,927: INFO: [2025-12-10 19:11:50] The video index state is Processing
+2025-12-10 19:12:03,116: INFO: Searching videos in account 134c7b67-58a1-44e3-b391-69c74189931f for video ID f5ob0wf8o9.
+2025-12-10 19:12:06,331: INFO: Getting thumbnail for video f5ob0wf8o9
+2025-12-10 19:12:07,428: INFO: Video Document Thumbnail updated successfully.
+2025-12-10 19:12:09,311: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:12:20,255: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:12:31,270: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:13:00,356: INFO: Transcript found for: 693954b7c309546926190f24
+2025-12-10 19:13:02,207: INFO: Completed transcript cleaning process for video: lecture 2
+2025-12-10 19:13:02,290: INFO: Video Status updated successfully for ID: 693954b7c309546926190f24
+2025-12-10 19:19:13,153: INFO: Course exist for Course Code: sc1015
+2025-12-10 19:19:13,781: INFO: Document updated successfully for insert_video_indexing_progress.
+2025-12-10 19:19:13,781: INFO: Video Registration Completed for Course ID: 69284647ea1d34002da4d372
+2025-12-10 19:19:13,781: INFO: starting video indexing process for video: final testing, lecture 3
+2025-12-10 19:19:15,446: INFO: Uploading a local file using multipart/form-data post request..
+2025-12-10 19:19:24,202: INFO: Checking if video kwkzzeoqy1 has finished indexing...
+2025-12-10 19:19:25,597: INFO: [2025-12-10 19:19:25] The video index state is Processing
+2025-12-10 19:19:36,644: INFO: [2025-12-10 19:19:36] The video index state is Processing
+2025-12-10 19:19:47,626: INFO: [2025-12-10 19:19:47] The video index state is Processing
+2025-12-10 19:19:58,593: INFO: [2025-12-10 19:19:58] The video index state is Processing
+2025-12-10 19:20:09,591: INFO: [2025-12-10 19:20:09] The video index state is Processing
+2025-12-10 19:20:20,596: INFO: [2025-12-10 19:20:20] The video index state is Processing
+2025-12-10 19:20:34,386: INFO: [2025-12-10 19:20:34] The video index state is Processing
+2025-12-10 19:20:45,368: INFO: [2025-12-10 19:20:45] The video index state is Processing
+2025-12-10 19:20:56,330: INFO: [2025-12-10 19:20:56] The video index state is Processing
+2025-12-10 19:21:07,335: INFO: [2025-12-10 19:21:07] The video index state is Processing
+2025-12-10 19:21:18,718: INFO: Searching videos in account 134c7b67-58a1-44e3-b391-69c74189931f for video ID kwkzzeoqy1.
+2025-12-10 19:21:22,219: INFO: Getting thumbnail for video kwkzzeoqy1
+2025-12-10 19:21:23,297: INFO: Video Document Thumbnail updated successfully.
+2025-12-10 19:21:25,238: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:21:36,196: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:21:47,155: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:21:58,219: INFO: Prompt content is not ready yet. Waiting 5 seconds before checking again...
+2025-12-10 19:22:21,114: INFO: Transcript found for: 693957316a93c563bea0b746
+2025-12-10 19:22:22,718: INFO: Completed transcript cleaning process for video: final testing, lecture 3
+2025-12-10 19:22:22,718: INFO: Completed Video Indexing Process for ID: 693957316a93c563bea0b746
+2025-12-10 19:22:22,803: INFO: Video Status updated successfully for ID: 693957316a93c563bea0b746
